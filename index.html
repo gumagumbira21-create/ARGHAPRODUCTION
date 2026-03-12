@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arga Music Fest 2026 - Konser Musik Terbesar</title>
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-light: #f1f1f1;
+            --text-gray: #b2bec3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: url('bgbody.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* --- NAVBAR --- */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-size: 24px;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+        }
+
+        .btn-ticket-nav {
+            padding: 8px 20px;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            color: var(--primary);
+            transition: 0.3s;
+        }
+
+        .btn-ticket-nav:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('andika1.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+            margin-top: -80px; /* Offset navbar height */
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            background: -webkit-linear-gradient(45deg, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .btn-main {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.6);
+        }
+
+        /* --- COUNTDOWN --- */
+        .countdown {
+            display: flex;
+            gap: 20px;
+            margin-top: 50px;
+        }
+
+        .time-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .time-box span {
+            display: block;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        .time-box small {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        /* --- LINEUP SECTION --- */
+        .section {
+            padding: 80px 10%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            width: 80px;
+            height: 4px;
+            background: var(--accent);
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .artist-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .artist-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .artist-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: 0.3s;
+        }
+
+        .artist-card:hover img {
+            filter: grayscale(0%);
+        }
+
+        .artist-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .artist-info h3 {
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .artist-info p {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        /* --- TICKET INFO --- */
+        .ticket-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-card:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 0 20px rgba(0, 206, 201, 0.2);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: var(--accent);
+            color: white;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            color: white;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .features {
+            list-style: none;
+            margin-bottom: 30px;
+            color: var(--text-gray);
+        }
+
+        .features li {
+            margin: 10px 0;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: black;
+            padding: 50px 10%;
+            text-align: center;
+            border-top: 1px solid #333;
+        }
+
+        .footer-text {
+            color: var(--text-gray);
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .nav-links { display: none; } /* Simplified for demo */
+            .countdown { gap: 10px; }
+            .time-box { padding: 10px; min-width: 60px; }
+            .time-box span { font-size: 1.5rem; }
+            
+            /* Mobile Menu Button (Hamburger) - Simple visible implementation */
+            .mobile-menu-btn {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
+            }
+        }
+
+        /* --- LOGIN MODAL STYLES --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .login-box {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .role-selector {
+            display: flex;
+            background: #f1f1f1;
+            border-radius: 50px;
+            margin-bottom: 25px;
+            padding: 5px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #555;
+            cursor: pointer;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .role-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        /* --- MAP SECTION STYLES --- */
+        .map-wrapper {
+            background: rgba(255, 255, 255, 0.05); /* Transparan */
+            backdrop-filter: blur(10px); /* Efek Blur */
+            -webkit-backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .map-wrapper:hover {
+            transform: translateY(-5px);
+        }
+
+        .map-frame {
+            border-radius: 15px;
+            width: 100%;
+            height: 450px;
+        }
+
+        .location-card {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid var(--secondary); /* Aksen warna di kiri */
+            text-align: center;
+        }
+    </style>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <header>
+        <div class="logo">ARGA<span style="color:white">Production</span></div>
+        <nav class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#lineup">Lineup</a>
+            <a href="#info">Info</a>
+            <a href="#" class="btn-ticket-nav" id="loginBtnNav">Login</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <h1>Kelapa Food Festival</h1>
+        <p>Bergabunglah dalam malam penuh keajaiban musik, visual spektakuler, dan kenangan tak terlupakan. Jangan sampai kehabisan!</p>
+        <h2 style="margin-bottom: 30px; font-size: 2rem; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">17 - 19 April 2026</h2>
+        
+        <!-- Action Button menghubungkan ke daftarpiket.html -->
+        <a href="daftarpiket.html">
+            <button class="btn-main">BELI TIKET SEKARANG</button>
+        </a>
+
+        <!-- Countdown Timer -->
+        <div class="countdown" id="countdown">
+            <div class="time-box"><span id="days">00</span><small>Hari</small></div>
+            <div class="time-box"><span id="hours">00</span><small>Jam</small></div>
+            <div class="time-box"><span id="minutes">00</span><small>Menit</small></div>
+            <div class="time-box"><span id="seconds">00</span><small>Detik</small></div>
+        </div>
+    </section>
+
+    <!-- Lineup Artists -->
+    <section class="section" id="lineup">
+        <h2 class="section-title">Guest Stars</h2>
+        <div class="grid-layout">
+            <!-- Artist 1 -->
+            <div class="artist-card">
+                <img src="andika2.png" alt="Artist 1">
+                <div class="artist-info">
+                    <h3>Andika Mahesa</h3>
+                </div>
+            </div>
+
+            <!-- Artist 1 -->
+            <div class="artist-card">
+                <img src="heri.jpeg" alt="Artist 1">
+                <div class="artist-info">
+                    <h3>Herry Gamma 1</h3>
+                </div>
+            </div>
+
+            <!-- Artist 1 -->
+            <div class="artist-card">
+                <img src="gen ambyar.jpg" alt="Artist 1">
+                <div class="artist-info">
+                    <h3>GEN AMBYAR</h3>
+                </div>
+            </div>
+
+            <!-- Artist 1 -->
+            <div class="artist-card">
+                <img src="arghamusic.png" alt="Artist 1">
+                <div class="artist-info">
+                    <h3>ARGHA MUSIC</h3>
+                </div>
+            </div>
+
+
+            <!-- Artist 2 -->
+            <div class="artist-card">
+                <img src="artis2.png" alt="Artist 2">
+                <div class="artist-info">
+                    <h3>DMX On 7</h3>
+                </div>
+            </div>
+            <!-- Artist 3 -->
+            <div class="artist-card">
+                <img src="Galista.jpg" alt="Artist 3">
+                <div class="artist-info">
+                    <h3>New Galista</h3>
+                </div>
+            </div>
+            <!-- Artist 4 -->
+            <div class="artist-card">
+                <img src="alzahra.png" alt="Artist 4">
+                <div class="artist-info">
+                    <h3>Al Zahra</h3>
+                </div>
+            </div>
+
+             <!-- Artist 4 -->
+            <div class="artist-card">
+                <img src="djarra.jpeg" alt="Artist 4">
+                <div class="artist-info">
+                    <h3>DJ Arra</h3>
+                </div>
+            </div>
+
+                         <!-- Artist 4 -->
+            <div class="artist-card">
+                <img src="han cemol.jpeg" alt="Artist 4">
+                <div class="artist-info">
+                    <h3>DJ Han Cemol</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ticket Pricing -->
+    <section class="section" id="info" style="background: url('bghost.jpg') no-repeat center center; background-size: cover;">
+        <h2 class="section-title">Host</h2>
+        <div class="grid-layout" style="max-width: 600px; margin: 0 auto;">
+            
+            <!-- Host 1 -->
+            <div class="artist-card">
+                <img src="munir.jpeg" alt="Host 1">
+                <div class="artist-info">
+                    <h3>Munir</h3>
+                </div>
+            </div>
+
+            <!-- Host 2 -->
+            <div class="artist-card">
+                <img src="jack tugil.jpeg" alt="Host 2">
+                <div class="artist-info">
+                    <h3>Jack Tugil</h3>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Maps Section -->
+    <section class="section" id="location">
+        <h2 class="section-title">Lokasi Acara</h2>
+        <div class="map-wrapper" style="max-width: 900px; margin: 0 auto;">
+            <iframe class="map-frame" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3986.493783499998!2d105.3554237746009!3d-2.042415797878278!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e271d4794b9c3ad%3A0xccca4c3433db97c!2sJl.%20Pangkalpinang-Muntok%2C%20Maras%20Senang%2C%20Kec.%20Klp.%2C%20Kabupaten%20Bangka%20Barat%2C%20Kepulauan%20Bangka%20Belitung%2033364!5e0!3m2!1sid!2sid!4v1718967448448!5m2!1sid!2sid" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            
+            <p class="location-card" style="color: var(--text-light);">
+                <strong>📍 Alamat Lokasi:</strong><br>
+                Jl. Pangkalpinang-Muntok, Maras Senang, Kec. Klp., Kabupaten Bangka Barat, Kepulauan Bangka Belitung 33364
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <h2 style="color:white;">ARGA ENTERTAINMENT</h2>
+        <p class="footer-text">© 2026 Arga Music Fest. All rights reserved.</p>
+        <p class="footer-text">Follow us on Instagram | Twitter | Facebook</p>
+    </footer>
+
+    <!-- Login Modal -->
+     <div class="modal-overlay" id="loginModal">
+        <div class="login-box">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px; color: #333;">Login Masuk</h2>
+            
+            <!-- Role Switcher -->
+            <div class="role-selector">
+                <button class="role-btn active" onclick="setRole('pengunjung')">Pengunjung</button>
+                <button class="role-btn" onclick="setRole('admin')">Admin</button>
+            </div>
+
+            <form id="loginForm" action="#" onsubmit="handleLogin(event)">
+                <input type="hidden" id="selectedRole" name="role" value="pengunjung">
+                
+                <input type="text" class="form-input" placeholder="Username / Email" required>
+                <input type="password" class="form-input" placeholder="Password" required>
+                
+                <button type="submit" class="btn-main" style="width: 100%; margin-top: 10px;">MASUK</button>
+                <p style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: #888;">Belum punya akun? <a href="daftarpiket.html" style="color: var(--secondary);">Daftar Tiket</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Simple JS for Countdown -->
+    <script>
+        // Set tanggal konser ke 17 April 2026
+        const concertDate = new Date('2026-04-17T00:00:00');
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const gap = concertDate - now;
+
+            const second = 1000;
+            const minute = second * 60;
+            const hour = minute * 60;
+            const day = hour * 24;
+
+            const d = Math.floor(gap / day);
+            const h = Math.floor((gap % day) / hour);
+            const m = Math.floor((gap % hour) / minute);
+            const s = Math.floor((gap % minute) / second);
+
+            document.getElementById('days').innerText = d;
+            document.getElementById('hours').innerText = h;
+            document.getElementById('minutes').innerText = m;
+            document.getElementById('seconds').innerText = s;
+        }
+
+        setInterval(updateCountdown, 1000);
+
+        /* --- LOGIN MODAL LOGIC --- */
+        const modal = document.getElementById('loginModal');
+        const btnNav = document.getElementById('loginBtnNav');
+        const closeBtn = document.getElementById('closeModal');
+        const roleInput = document.getElementById('selectedRole');
+        const roleBtns = document.querySelectorAll('.role-btn');
+
+        // Open Modal
+        btnNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.style.display = 'flex';
+        });
+
+        // Close Modal
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close if clicked outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Switch Role Logic
+        window.setRole = function(role) {
+            roleInput.value = role;
+            roleBtns.forEach(btn => {
+                // Toggle visual class
+                if (btn.innerText.toLowerCase() === role) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Handle Login Submit (Simulasi)
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            const role = roleInput.value;
+            alert(`Login sebagai ${role.toUpperCase()} berhasil! (Logika backend belum terhubung)`);
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

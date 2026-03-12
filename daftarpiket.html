@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Tiket</title>
+    <style>
+        /* Reset dasar untuk konsistensi browser */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical; /* Membolehkan user mengubah tinggi text area */
+            min-height: 80px;
+        }
+
+        .file-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .btn-confirm {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background-color: #218838;
+        }
+
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
+
+        /* Responsif untuk layar kecil */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: auto;
+            padding: 40px 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #e8f5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: #28a745;
+        }
+
+        .modal h3 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .btn-close-modal {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-close-modal:hover {
+            background-color: #218838;
+        }
+
+        .payment-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+            font-size: 14px;
+        }
+        .payment-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+    </style>
+    <!-- Flatpickr CSS (Tema Material Blue) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Form Pendaftaran Tiket</h2>
+        
+        <!-- Form dimulai di sini -->
+        <!-- action="#" diganti dengan URL backend Anda nantinya -->
+        <form action="#" method="POST" enctype="multipart/form-data">
+            
+            <div class="form-group">
+                <label for="id_tiket">ID Tiket</label>
+                <input type="text" id="id_tiket" name="id_tiket" placeholder="ID akan terisi otomatis" required readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="nama">Nama Lengkap</label>
+                <input type="text" id="nama" name="nama" placeholder="Nama sesuai identitas" required>
+            </div>
+
+            <div class="form-group">
+                <label for="alamat">Alamat</label>
+                <textarea id="alamat" name="alamat" placeholder="Alamat lengkap domisili" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="whatsapp">Nomor WA</label>
+                <input type="tel" id="whatsapp" name="whatsapp" placeholder="Contoh: 08123456789" pattern="[0-9]{10,15}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="nama@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tanggal_transaksi">Tanggal Transaksi</label>
+                <input type="text" id="tanggal_transaksi" name="tanggal_transaksi" placeholder="Pilih Tanggal" required>
+            </div>
+
+            <div class="payment-info">
+                <p><strong>Nomor Rekening :</strong> 1234-5678-90 (Bank BRI)</p>
+                <p><strong>Nama Pemilik Akun :</strong> Arga Entertainment</p>
+            </div>
+
+            <div class="form-group">
+                <label for="bukti_bayar">Upload Bukti Bayar</label>
+                <input type="file" id="bukti_bayar" name="bukti_bayar" accept="image/*,.pdf" required>
+                <span class="file-hint">Format: JPG, PNG, atau PDF. Maks 2MB.</span>
+            </div>
+
+            <div class="button-group">
+                <!-- Tombol Cancel tipe reset akan membersihkan form -->
+                <button type="reset" class="btn-cancel">Cancel</button>
+                <!-- Tombol Submit untuk mengirim data -->
+                <button type="submit" class="btn-confirm">Konfirmasi</button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Modal Sukses -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+            </div>
+            <h3>Pembelian Tiket Online Berhasil!</h3>
+            <p style="font-size: 15px; line-height: 1.6; color: #666; margin-bottom: 20px;">Terimakasih telah melakukan pembelian tiket online di ArgaEntertainment. File tiket akan segera kami ke alamat email yang tercantum saat melakukan pembelian tiket maksimal dalam 1x24 jam, periksa secara berkala kotak masuk email anda. Mohon Menunggu</p>
+            <button class="btn-close-modal">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Library untuk Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Library Flatpickr (Datepicker) -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+
+    <script>
+        // Mengatur tanggal default ke hari ini saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr("#tanggal_transaksi", {
+                dateFormat: "Y-m-d",      // Format nilai yang disimpan (untuk database)
+                defaultDate: "today",     // Default hari ini
+                locale: "id",             // Bahasa Indonesia
+                altInput: true,           // Aktifkan tampilan alternatif
+                altFormat: "j F Y",       // Format tampilan: 15 April 2026
+            });
+        });
+
+        // Mengisi ID Tiket secara otomatis berdasarkan nama
+        document.getElementById('nama').addEventListener('blur', function () {
+            const namaInput = this.value;
+            const idTiketInput = document.getElementById('id_tiket');
+
+            // Ambil hingga 4 karakter pertama dari nama, hanya huruf, ubah ke uppercase
+            const nameLetters = namaInput.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+
+            if (nameLetters.length > 0)
+            {
+                let numberSequence = '';
+                for (let i = 0; i < nameLetters.length; i++)
+                {
+                    // Konversi huruf ke posisi alfabet (A=1, B=2, ...)
+                    // Contoh: DERI -> D=4, E=5, R=18, I=9 -> 45189
+                    numberSequence += nameLetters.charCodeAt(i) - 64;
+                }
+
+                // Gabungkan menjadi format ID: ID-[angka]-[urutan]
+                const finalId = `ID-${numberSequence}-001`;
+                idTiketInput.value = finalId;
+            } else
+            {
+                // Kosongkan ID jika nama dihapus atau tidak valid
+                idTiketInput.value = '';
+            }
+        });
+
+        // Inisialisasi Supabase Client
+        const supabaseUrl = 'https://gnwosoaguhvqfunvzqqh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdud29zb2FndWh2cWZ1bnZ6cXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDc5NzAsImV4cCI6MjA4ODY4Mzk3MH0.G_HocHF6DjW7mtYTGkEwynhtkVjkmP1Wo5MAdczAmWI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Menangani tombol Konfirmasi untuk simpan ke Supabase
+        document.querySelector('form').addEventListener('submit', async function (e) {
+            e.preventDefault(); // Mencegah halaman reload/submit ke server
+
+            const confirmButton = document.querySelector('.btn-confirm');
+            confirmButton.disabled = true;
+            confirmButton.textContent = 'Menyimpan...';
+
+            try {
+                // 1. Ambil data dari form
+                const id_tiket = document.getElementById('id_tiket').value;
+                const nama_lengkap = document.getElementById('nama').value;
+                const alamat = document.getElementById('alamat').value;
+                const nomor_wa = document.getElementById('whatsapp').value;
+                const email = document.getElementById('email').value;
+                const tanggal_transaksi = document.getElementById('tanggal_transaksi').value;
+                const file = document.getElementById('bukti_bayar').files[0];
+
+                if (!file) {
+                    throw new Error('Harap upload bukti bayar.');
+                }
+
+                // 2. Upload file bukti bayar ke Supabase Storage
+                const filePath = `bukti_bayar/${Date.now()}-${file.name}`;
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('aset')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                // 3. Dapatkan URL publik dari file yang diupload
+                const { data: urlData } = await supabaseClient.storage
+                    .from('aset')
+                    .getPublicUrl(filePath);
+
+                // 4. Simpan semua data ke tabel 'tiketonline'
+                const { error: insertError } = await supabaseClient
+                    .from('tiketonline')
+                    .insert([{
+                        id_tiket, nama_lengkap, alamat, nomor_wa, email, tanggal_transaksi,
+                        bukti_bayar: urlData.publicUrl
+                    }]);
+
+                if (insertError) throw insertError;
+
+                // Tampilkan modal sukses
+                const modal = document.getElementById('successModal');
+                modal.style.display = 'flex';
+
+                // Fungsi untuk menutup modal
+                const closeModal = () => modal.style.display = 'none';
+
+                // Event listener untuk tombol close dan klik di luar modal
+                modal.querySelector('.btn-close-modal').onclick = closeModal;
+                window.onclick = (event) => { if (event.target == modal) closeModal(); };
+
+                e.target.reset(); // Reset form setelah berhasil
+                document.getElementById('id_tiket').value = ''; // ID tiket juga di-reset
+
+            } catch (error) {
+                console.error('Error:', error.message);
+                alert(`Terjadi kesalahan: ${error.message}`);
+            } finally {
+                // Kembalikan tombol ke keadaan semula
+                confirmButton.disabled = false;
+                confirmButton.textContent = 'Konfirmasi';
+            }
+        });
+    </script>
+
+</body>
+</html>
