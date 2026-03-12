@@ -14,7 +14,8 @@
         }
 
         body {
-            background-color: #f4f7f6;
+            background: url('bgbody.jpg') no-repeat center center fixed;
+            background-size: cover;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -131,7 +132,8 @@
             width: 100%; /* Full width */
             height: 100%; /* Full height */
             overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            backdrop-filter: blur(8px); /* Efek Blur */
             justify-content: center;
             align-items: center;
         }
@@ -139,13 +141,14 @@
         .modal-content {
             background-color: #ffffff;
             margin: auto;
-            padding: 40px 30px;
-            border-radius: 15px;
+            padding: 50px 30px;
+            border-radius: 20px;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
             text-align: center;
             position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.9);
             animation: slideIn 0.4s ease-out;
         }
 
@@ -155,14 +158,15 @@
         }
 
         .success-icon {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             background-color: #e8f5e9;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 25px;
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.2);
         }
         
         .success-icon svg {
@@ -173,25 +177,30 @@
 
         .modal h3 {
             color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: #2d3436;
         }
 
         .btn-close-modal {
-            background-color: #28a745;
+            background: linear-gradient(45deg, #28a745, #218838);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: transform 0.2s, box-shadow 0.2s;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 20px;
+            box-shadow: 0 8px 15px rgba(33, 136, 56, 0.3);
         }
 
         .btn-close-modal:hover {
-            background-color: #218838;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(33, 136, 56, 0.4);
         }
 
         .payment-info {
