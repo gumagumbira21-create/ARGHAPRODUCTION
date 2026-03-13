@@ -420,9 +420,44 @@
             border-left: 5px solid var(--secondary); /* Aksen warna di kiri */
             text-align: center;
         }
+
+        /* --- TOAST NOTIFICATION --- */
+        #toast {
+            visibility: hidden;
+            min-width: 300px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 50px;
+            padding: 16px;
+            position: fixed;
+            z-index: 9999;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 30px;
+            font-size: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        #toast.success { background: linear-gradient(45deg, #00b894, #00cec9); }
+        #toast.error { background: linear-gradient(45deg, #d63031, #ff7675); }
     </style>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
 
@@ -439,7 +474,7 @@
 
     <!-- Hero Section -->
     <section class="hero" id="home">
-        <h1>Kelapa Food Festival</h1>
+        <h1>Kelapa Food Festival VOL 1</h1>
         <p>Bergabunglah dalam malam penuh keajaiban musik, visual spektakuler, dan kenangan tak terlupakan. Jangan sampai kehabisan!</p>
         <h2 style="margin-bottom: 30px; font-size: 2rem; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">17 - 19 April 2026</h2>
         
@@ -583,24 +618,28 @@
         <div class="login-box">
             <span class="close-modal" id="closeModal">&times;</span>
             <h2 style="text-align: center; margin-bottom: 20px; color: #333;">Login Masuk</h2>
-            
-            <!-- Role Switcher -->
+
             <div class="role-selector">
-                <button class="role-btn active" onclick="setRole('pengunjung')">Pengunjung</button>
-                <button class="role-btn" onclick="setRole('admin')">Admin</button>
+                <button type="button" class="role-btn active" data-role="super admin">Super Admin</button>
+                <button type="button" class="role-btn" data-role="admin staff">Admin Staff</button>
             </div>
 
             <form id="loginForm" action="#" onsubmit="handleLogin(event)">
-                <input type="hidden" id="selectedRole" name="role" value="pengunjung">
-                
-                <input type="text" class="form-input" placeholder="Username / Email" required>
-                <input type="password" class="form-input" placeholder="Password" required>
+                <input type="hidden" id="selectedRole" name="role" value="super admin">
+
+                <input type="text" id="loginUsername" class="form-input" placeholder="Username / Email" required>
+                <input type="password" id="loginPassword" class="form-input" placeholder="Password" required>
                 
                 <button type="submit" class="btn-main" style="width: 100%; margin-top: 10px;">MASUK</button>
-                <p style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: #888;">Belum punya akun? <a href="daftarpiket.html" style="color: var(--secondary);">Daftar Tiket</a></p>
             </form>
         </div>
     </div>
+
+    <!-- Toast Notification Element -->
+    <div id="toast"><i class='bx bx-info-circle'></i> <span id="toast-message">Notification</span></div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Simple JS for Countdown -->
     <script>
@@ -654,25 +693,111 @@
             }
         });
 
-        // Switch Role Logic
-        window.setRole = function(role) {
-            roleInput.value = role;
-            roleBtns.forEach(btn => {
-                // Toggle visual class
-                if (btn.innerText.toLowerCase() === role) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+        // Role Selector Logic
+        roleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                roleBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                roleInput.value = btn.dataset.role;
             });
+        });
+
+        // Init Supabase
+        const supabaseUrl = 'https://gnwosoaguhvqfunvzqqh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdud29zb2FndWh2cWZ1bnZ6cXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDc5NzAsImV4cCI6MjA4ODY4Mzk3MH0.G_HocHF6DjW7mtYTGkEwynhtkVjkmP1Wo5MAdczAmWI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Toast Function
+        function showToast(message, type = 'normal') {
+            const toast = document.getElementById("toast");
+            const msg = document.getElementById("toast-message");
+            
+            msg.innerText = message;
+            toast.className = "show " + type;
+            
+            // Ikon berdasarkan tipe
+            const iconClass = type === 'success' ? 'bx-check-circle' : (type === 'error' ? 'bx-x-circle' : 'bx-info-circle');
+            toast.querySelector('i').className = `bx ${iconClass}`;
+
+            setTimeout(function(){ 
+                toast.className = toast.className.replace("show", ""); 
+            }, 3000);
         }
 
-        // Handle Login Submit (Simulasi)
-        window.handleLogin = function(e) {
+        // Handle Login Submit (Real Logic)
+        window.handleLogin = async function(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            
+            btn.innerText = 'Memproses...';
+            btn.disabled = true;
+
             const role = roleInput.value;
-            alert(`Login sebagai ${role.toUpperCase()} berhasil! (Logika backend belum terhubung)`);
-            modal.style.display = 'none';
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (role === 'super admin') {
+                try {
+                    // Cek tabel 'pengaturan' untuk Super Admin
+                    const { data, error } = await supabaseClient
+                        .from('pengaturan')
+                        .select('*')
+                        .eq('username_utama', username)
+                        .eq('password_utama', password)
+                        .single();
+
+                    if (error || !data) {
+                        showToast("Username atau Password salah!", "error");
+                    } else {
+                        // Login Berhasil
+                        const adminName = data.owner || "Admin"; // Ambil nama owner atau default
+                        showToast(`Selamat Datang, ${adminName}!`, "success");
+                        
+                        // Simpan sesi (sederhana)
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('userRole', 'super_admin');
+                        localStorage.setItem('userName', adminName);
+
+                        setTimeout(() => {
+                            window.location.href = 'dashboardadmin.html';
+                        }, 1500);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Terjadi kesalahan koneksi.", "error");
+                }
+            } else if (role === 'admin staff') {
+                try {
+                    // Cek tabel 'admin' untuk Admin Staff
+                    const { data, error } = await supabaseClient
+                        .from('admin')
+                        .select('nama, username, password')
+                        .eq('username', username)
+                        .eq('password', password)
+                        .single();
+
+                    if (error || !data) {
+                        showToast("Username atau Password salah!", "error");
+                    } else {
+                        // Login Berhasil
+                        const adminName = data.nama || "Staff";
+                        showToast(`Selamat Datang, ${adminName}!`, "success");
+
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('userRole', 'admin_staff');
+                        localStorage.setItem('userName', adminName);
+
+                        setTimeout(() => { window.location.href = 'dashboardadmin.html'; }, 1500);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Terjadi kesalahan koneksi.", "error");
+                }
+            }
+
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
     </script>
 </body>
