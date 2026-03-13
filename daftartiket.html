@@ -551,7 +551,7 @@
                 const { data, error } = await supabaseClient
                     .from('tiketonline')
                     .select('*')
-                    .order('created_at', { ascending: false }); // Urutkan terbaru
+                    .order('tanggal_transaksi', { ascending: false }); // Urutkan berdasarkan tanggal transaksi
 
                 if (error) throw error;
 
