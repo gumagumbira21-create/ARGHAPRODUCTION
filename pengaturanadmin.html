@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Admin - Arga Production</title>
+    <!-- Google Fonts: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Boxicons untuk Icon -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --sidebar-bg: #181818;
+            --text-light: #f1f1f1;
+            --text-gray: #b2bec3;
+            --danger: #ff7675;
+            --header-height: 70px;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            text-decoration: none;
+            list-style: none;
+        }
+
+        body {
+            background: linear-gradient(rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 0.5)), url('bgdashbor.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-light);
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVBAR --- */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background-color: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header_toggle {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: 0.3s;
+        }
+
+        .header_toggle:hover {
+            color: var(--primary);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            letter-spacing: 1px;
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        /* --- SIDEBAR --- */
+        .l-navbar {
+            position: fixed;
+            top: var(--header-height);
+            left: -100%;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background-color: var(--sidebar-bg);
+            padding: 20px 0;
+            transition: 0.4s;
+            z-index: 99;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+        }
+
+        .nav_list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 25px;
+            color: var(--text-gray);
+            transition: 0.3s;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .nav_link-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav_icon {
+            font-size: 1.5rem;
+        }
+
+        .nav_link:hover, .nav_link.active {
+            color: var(--text-light);
+            background-color: var(--primary);
+        }
+
+        /* Submenu (Dropdown) Styles */
+        .sub-menu {
+            background-color: #121212;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .sub-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px 12px 65px;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+
+        .sub-menu a:hover {
+            color: var(--secondary);
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .sub-menu a.active {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .dropdown_icon {
+            transition: transform 0.3s;
+        }
+
+        .nav_item.show .sub-menu {
+            max-height: 200px;
+        }
+
+        .nav_item.show .dropdown_icon {
+            transform: rotate(180deg);
+        }
+
+        .l-navbar.show {
+            left: 0;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            position: relative;
+            margin-top: var(--header-height);
+            padding: 2rem;
+            transition: 0.4s;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-add-admin {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .admin-table-container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        thead th {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background-color: #252525;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            background: none;
+            border: 1px solid #444;
+            color: var(--text-gray);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons .btn-edit:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .action-buttons .btn-delete:hover {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* --- FOOTER --- */
+        .admin-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.8rem;
+        }
+
+        /* Overlay untuk Sidebar (Global) */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 98;
+            display: none;
+        }
+        .overlay.show {
+            display: block;
+        }
+
+        @media screen and (max-width: 767px) {
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay-form {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1001;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            animation: fadeInOverlay 0.3s;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-overlay-form.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #333;
+            animation: fadeInContent 0.3s ease-out;
+        }
+
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: var(--text-light);
+        }
+
+        .close-modal-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--danger);
+        }
+
+        .modal-content .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-content .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .modal-content .form-control {
+            width: 100%;
+            padding: 12px;
+            background-color: #121212;
+            border: 1px solid #333;
+            color: var(--text-light);
+            border-radius: 5px;
+        }
+
+        .modal-content .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .modal-footer .btn-cancel {
+            background-color: #444;
+            color: var(--text-light);
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-footer .btn-cancel:hover {
+            background-color: #555;
+        }
+
+        .modal-footer .btn-submit {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-footer .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+    <style>
+        /* Style untuk menu yang dinonaktifkan */
+        .disabled-menu {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body id="body-pd">
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-left">
+            <i class='bx bx-menu header_toggle' id="header-toggle"></i>
+            <div class="brand-logo">
+                <img src="arghamusic.png" alt="Logo" id="nav-logo" onerror="this.style.display='none'">
+                <span class="brand-name" id="nav-brand-name">ARGA<span>Production</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="l-navbar" id="nav-bar">
+        <nav class="nav">
+            <ul class="nav_list">
+                <li><a href="dashboardadmin.html" class="nav_link"><div class="nav_link-content"><i class='bx bx-grid-alt nav_icon'></i><span class="nav_name">Dashboard</span></div></a></li>
+                <li><a href="identitas.html" class="nav_link"><div class="nav_link-content"><i class='bx bx-store nav_icon'></i><span class="nav_name">Identitas Usaha</span></div></a></li>
+
+                <!-- Pengaturan (Dropdown) - Aktif & Terbuka -->
+                <li class="nav_item show" id="menu-pengaturan">
+                    <div class="nav_link" onclick="toggleSubmenu('menu-pengaturan')"><div class="nav_link-content"><i class='bx bx-cog nav_icon'></i><span class="nav_name">Pengaturan</span></div><i class='bx bx-chevron-down dropdown_icon'></i></div>
+                    <ul class="sub-menu">
+                        <li><a href="pengaturanadmin.html" class="active">Pengaturan Admin</a></li>
+                        <li><a href="Akunbank.html">Akun Pembayaran</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav_item" id="menu-tiket">
+                    <div class="nav_link" onclick="toggleSubmenu('menu-tiket')"><div class="nav_link-content"><i class='bx bx-ticket nav_icon'></i><span class="nav_name">Daftar Tiket</span></div><i class='bx bx-chevron-down dropdown_icon'></i></div>
+                    <ul class="sub-menu"><li><a href="#">Tiket Terjual</a></li><li><a href="#">Entry Penonton</a></li></ul>
+                </li>
+
+                <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-wallet nav_icon'></i><span class="nav_name">Pemasukan</span></div></a></li>
+                <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-bar-chart-alt-2 nav_icon'></i><span class="nav_name">Laporan</span></div></a></li>
+                <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-data nav_icon'></i><span class="nav_name">Backup & Reset</span></div></a></li>
+                
+                <li style="margin-top: 20px; border-top: 1px solid #333;">
+                    <a href="#" id="logout-btn" class="nav_link" style="color: var(--danger);"><div class="nav_link-content"><i class='bx bx-log-out nav_icon'></i><span class="nav_name">Logout</span></div></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-header">
+            <h2 style="color: var(--text-light);">Manajemen Admin</h2>
+            <button class="btn-add-admin" id="btn-tambah-admin">
+                <i class='bx bx-plus'></i> Tambah Admin Baru
+            </button>
+        </div>
+        
+        <div class="admin-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Admin</th>
+                        <th>Nama Lengkap</th>
+                        <th>Jabatan</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data akan dimuat dari Supabase -->
+                    <tr><td colspan="6" style="text-align: center;">Memuat data admin...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="admin-footer">
+            <p>© 2026 Arga Music Fest - Admin Control Panel</p>
+        </footer>
+    </main>
+
+    <!-- Modal Tambah Admin -->
+    <div id="modal-form-admin" class="modal-overlay-form">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Admin Baru</h3>
+                <span class="close-modal-btn" id="btn-close-x">&times;</span>
+            </div>
+            <form id="form-admin" data-mode="add">
+                <div class="form-group">
+                    <label>ID Admin</label>
+                    <input type="text" id="id_admin" class="form-control" placeholder="Terisi otomatis" readonly style="background-color: #2b2b2b; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="nama_admin" class="form-control" placeholder="Nama Lengkap Admin">
+                </div>
+                <div class="form-group">
+                    <label>Jabatan</label>
+                    <input type="text" id="jabatan_admin" class="form-control" placeholder="Contoh: Super Admin, Staff">
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username_admin" class="form-control" placeholder="Username untuk Login">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password_admin" class="form-control" placeholder="Password Login" style="padding-right: 40px;">
+                        <i class='bx bx-show' id="togglePasswordAdmin" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6c757d; font-size: 1.2rem;"></i>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="btn-cancel-modal">Cancel</button>
+                    <button type="submit" class="btn-submit">Tambah Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Script -->
+    <script>
+        // Proteksi Halaman: Jalankan segera untuk memeriksa status login dan role
+        (function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const userRole = localStorage.getItem('userRole');
+            if (isLoggedIn !== 'true' || userRole === 'admin_staff') {
+                alert('Anda tidak memiliki akses ke halaman ini.');
+                window.location.href = userRole === 'admin_staff' ? 'dashboardadmin.html' : 'index.html';
+            }
+        })();
+
+        const showNavbar = (toggleId, navId, bodyId, overlayId) => {
+            const toggle = document.getElementById(toggleId), nav = document.getElementById(navId), overlay = document.getElementById(overlayId);
+            if(toggle && nav && overlay){
+                toggle.addEventListener('click', ()=>{ nav.classList.toggle('show'); overlay.classList.toggle('show'); });
+                overlay.addEventListener('click', () => { nav.classList.remove('show'); overlay.classList.remove('show'); });
+            }
+        }
+        showNavbar('header-toggle', 'nav-bar', 'body-pd', 'overlay');
+
+        function toggleSubmenu(id) {
+            const parent = document.getElementById(id);
+            const isOpen = parent.classList.contains('show');
+            document.querySelectorAll('.nav_item').forEach(item => item.classList.remove('show'));
+            if (!isOpen) {
+                parent.classList.add('show');
+            }
+        }
+
+        // Fetch Identity (Logo & Nama Usaha)
+        const supabaseUrl = 'https://gnwosoaguhvqfunvzqqh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdud29zb2FndWh2cWZ1bnZ6cXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDc5NzAsImV4cCI6MjA4ODY4Mzk3MH0.G_HocHF6DjW7mtYTGkEwynhtkVjkmP1Wo5MAdczAmWI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function loadIdentity() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('pengaturan')
+                    .select('nama_eo, logo')
+                    .limit(1);
+                
+                if (data && data.length > 0) {
+                    const settings = data[0];
+                    // Update Logo
+                    if (settings.logo) {
+                        document.getElementById('nav-logo').src = settings.logo + '?' + new Date().getTime();
+                        document.getElementById('nav-logo').style.display = 'block';
+                    }
+                    // Update Nama Usaha
+                    if (settings.nama_eo) {
+                        document.getElementById('nav-brand-name').textContent = settings.nama_eo;
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memuat identitas:", err);
+            }
+        }
+
+        // Pengaturan Akses Menu & Logout
+        document.addEventListener('DOMContentLoaded', () => {
+            loadIdentity();
+            loadAdmins();
+
+            // Logika Tombol Logout
+            document.getElementById('logout-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+        });
+
+        // --- Fungsi untuk membuka modal dalam mode edit ---
+        function openEditModal(adminData) {
+            formAdmin.reset(); 
+            
+            // Ubah mode form ke 'edit' dan simpan ID
+            formAdmin.dataset.mode = 'edit';
+            formAdmin.dataset.id = adminData.id_admin;
+
+            // Ubah judul modal dan teks tombol
+            modalAdmin.querySelector('.modal-header h3').textContent = 'Edit Admin';
+            modalAdmin.querySelector('.btn-submit').textContent = 'Simpan Perubahan';
+
+            // Isi form dengan data yang ada
+            document.getElementById('id_admin').value = adminData.id_admin;
+            document.getElementById('nama_admin').value = adminData.nama;
+            document.getElementById('jabatan_admin').value = adminData.jabatan;
+            document.getElementById('username_admin').value = adminData.username;
+            document.getElementById('password_admin').value = adminData.password;
+
+            // Pastikan ID tidak bisa diubah
+            document.getElementById('id_admin').readOnly = true;
+            
+            // Tampilkan modal
+            modalAdmin.classList.add('active');
+        }
+
+        // --- Reset Modal ke mode 'add' ---
+        function resetModalToAddMode() {
+            formAdmin.reset();
+            formAdmin.dataset.mode = 'add';
+            formAdmin.removeAttribute('data-id');
+            modalAdmin.querySelector('.modal-header h3').textContent = 'Tambah Admin Baru';
+            modalAdmin.querySelector('.btn-submit').textContent = 'Tambah Admin';
+            document.getElementById('id_admin').readOnly = true; // Tetap readonly untuk auto-gen
+            adminIdRandomPart = null;
+        }
+
+        // --- Load Admins from Supabase ---
+        async function loadAdmins() {
+            const tableBody = document.querySelector('.admin-table-container tbody');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('admin')
+                    .select('*');
+
+                if (error) throw error;
+
+                tableBody.innerHTML = ''; // Kosongkan tabel sebelum isi ulang
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Belum ada data admin.</td></tr>';
+                    return;
+                }
+
+                data.forEach(admin => {
+                    const row = `
+                        <tr>
+                            <td>${admin.id_admin || '-'}</td>
+                            <td>${admin.nama || '-'}</td>
+                            <td>${admin.jabatan || '-'}</td>
+                            <td>${admin.username || '-'}</td>
+                            <td>********</td>
+                            <td class="action-buttons">
+                                <button class="btn-edit" title="Edit" data-id="${admin.id_admin}"><i class='bx bxs-edit'></i></button>
+                                <button class="btn-delete" title="Hapus" data-id="${admin.id_admin}"><i class='bx bxs-trash'></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+
+            } catch (err) {
+                console.error('Error loading admins:', err.message);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Gagal memuat data: ${err.message}</td></tr>`;
+            }
+        }
+
+        // --- LOGIC MODAL ---
+        const modalAdmin = document.getElementById('modal-form-admin');
+        const btnTambah = document.getElementById('btn-tambah-admin');
+        const btnCloseX = document.getElementById('btn-close-x');
+        const btnCancel = document.getElementById('btn-cancel-modal');
+        const formAdmin = document.getElementById('form-admin');
+        let adminIdRandomPart = null;
+
+        // Buka Modal
+        btnTambah.addEventListener('click', () => {
+            resetModalToAddMode();
+            modalAdmin.classList.add('active');
+        });
+
+        // Tutup Modal
+        const closeModal = () => {
+            modalAdmin.classList.remove('active');
+            resetModalToAddMode();
+        }
+        btnCloseX.addEventListener('click', closeModal);
+        btnCancel.addEventListener('click', closeModal);
+
+        // Tutup jika klik di luar area modal content
+        modalAdmin.addEventListener('click', (e) => {
+            if (e.target === modalAdmin) closeModal();
+        });
+
+        // --- Event Listener untuk tombol Aksi (Update & Delete) ---
+        const tableBody = document.querySelector('.admin-table-container tbody');
+        tableBody.addEventListener('click', async (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const id = button.dataset.id;
+            if (!id) return;
+
+            // Logika untuk Hapus
+            if (button.classList.contains('btn-delete')) {
+                if (confirm(`Apakah Anda yakin ingin menghapus admin dengan ID: ${id}?`)) {
+                    try {
+                        const { error } = await supabaseClient.from('admin').delete().eq('id_admin', id);
+                        if (error) throw error;
+                        alert('Admin berhasil dihapus.');
+                        loadAdmins(); // Muat ulang tabel
+                    } catch (err) {
+                        alert('Gagal menghapus: ' + err.message);
+                    }
+                }
+            }
+
+            // Logika untuk Edit
+            if (button.classList.contains('btn-edit')) {
+                try {
+                    const { data, error } = await supabaseClient.from('admin').select('*').eq('id_admin', id).single();
+                    if (error) throw error;
+                    openEditModal(data);
+                } catch (err) {
+                    alert('Gagal mengambil data untuk diedit: ' + err.message);
+                }
+            }
+        });
+
+        // --- Auto Generate ID Admin ---
+        const namaAdminInput = document.getElementById('nama_admin');
+        const idAdminInput = document.getElementById('id_admin');
+
+        namaAdminInput.addEventListener('input', function() {
+            // Hanya generate ID jika dalam mode 'add'
+            if (formAdmin.dataset.mode === 'add') {
+                const nama = this.value.trim();
+                if (nama) {
+                    if (!adminIdRandomPart) {
+                        adminIdRandomPart = Math.floor(1000 + Math.random() * 9000);
+                    }
+                    idAdminInput.value = `ID-${nama}.${adminIdRandomPart}`;
+                } else {
+                    idAdminInput.value = '';
+                    adminIdRandomPart = null; // Reset jika input nama kosong
+                }
+            }
+        });
+
+        // --- Toggle Password Visibility ---
+        const togglePasswordAdmin = document.getElementById('togglePasswordAdmin');
+        const passwordAdminInput = document.getElementById('password_admin');
+
+        togglePasswordAdmin.addEventListener('click', function () {
+            const type = passwordAdminInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordAdminInput.setAttribute('type', type);
+            this.classList.toggle('bx-show');
+            this.classList.toggle('bx-hide');
+        });
+
+        // --- Simpan Admin ke Supabase ---
+        formAdmin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btnSubmit = formAdmin.querySelector('.btn-submit');
+            const originalText = btnSubmit.textContent;
+            btnSubmit.innerText = 'Menyimpan...';
+            btnSubmit.disabled = true;
+
+            const mode = formAdmin.dataset.mode;
+            const idToUpdate = formAdmin.dataset.id;
+
+            try {
+                // Ambil data dari form
+                const id_admin = document.getElementById('id_admin').value;
+                const nama = document.getElementById('nama_admin').value;
+                const jabatan = document.getElementById('jabatan_admin').value;
+                const username = document.getElementById('username_admin').value;
+                const password = document.getElementById('password_admin').value;
+
+                if (!id_admin || !nama || !jabatan || !username || !password) {
+                    throw new Error('Mohon lengkapi semua data.');
+                }
+
+                let error;
+
+                if (mode === 'edit') {
+                    // Logika UPDATE
+                    const { error: updateError } = await supabaseClient
+                        .from('admin')
+                        .update({ nama, jabatan, username, password })
+                        .eq('id_admin', idToUpdate);
+                    error = updateError;
+                } else {
+                    // Logika INSERT
+                    const { error: insertError } = await supabaseClient
+                        .from('admin')
+                        .insert([{ id_admin, nama, jabatan, username, password }]);
+                    error = insertError;
+                }
+
+                if (error) throw error;
+
+                alert(`Admin berhasil di${mode === 'edit' ? 'perbarui' : 'tambahkan'}!`);
+                closeModal();
+                loadAdmins(); // Refresh tabel otomatis
+            } catch (err) {
+                alert('Gagal menyimpan: ' + err.message);
+            } finally {
+                btnSubmit.innerText = originalText;
+                btnSubmit.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
