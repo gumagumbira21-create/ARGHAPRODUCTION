@@ -9,6 +9,10 @@
     <!-- Boxicons untuk Icon -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
+        /* Fix untuk jsPDF AutoTable */
+        .jspdf-plugin-style { font-family: helvetica, sans-serif; }
+    </style>
+    <style>
         /* --- VARIABLES & RESET --- */
         :root {
             --primary: #6c5ce7;
@@ -293,6 +297,62 @@
             .main-content {
                 padding: 1rem;
             }
+            .table-tools {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* --- TABLE TOOLS STYLES --- */
+        .table-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .search-box input {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #121212;
+            color: white;
+            width: 100%;
+            min-width: 250px;
+        }
+
+        .btn-tool {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-pdf {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .btn-pdf:hover { background-color: #c0392b; }
+
+        .btn-scan {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-scan:hover { background-color: #5849be; }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
         }
     </style>
 </head>
@@ -351,43 +411,40 @@
     <main class="main-content">
         <div class="content-header">
             <h2 style="color: var(--text-light);">Daftar Tiket Terjual</h2>
-            <!-- Bisa ditambahkan tombol filter atau search di sini -->
+        </div>
+
+        <!-- Container: Cari, Export, Scan -->
+        <div class="table-tools">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cari Nama, ID, atau Email...">
+            </div>
+            <div class="action-group">
+                <button class="btn-tool btn-pdf" onclick="exportToPDF()">
+                    <i class='bx bxs-file-pdf'></i> Export PDF
+                </button>
+                <button class="btn-tool btn-scan" onclick="scanTiket()">
+                    <i class='bx bx-qr-scan'></i> Scan Tiket
+                </button>
+            </div>
         </div>
 
         <!-- Tabel Daftar Tiket -->
         <div class="table-container">
-            <table>
+            <table id="tiketTable">
                 <thead>
                     <tr>
                         <th>ID Tiket</th>
-                        <th>Nama Pembeli</th>
+                        <th>Nama Lengkap</th>
+                        <th>Alamat</th>
+                        <th>Nomor WA</th>
+                        <th>Email</th>
+                        <th>Bukti Bayar</th>
                         <th>Tanggal Transaksi</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
+                        <th>Aksi</th> <!-- Tetap ada untuk delete -->
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Contoh Data Dummy -->
-                    <tr>
-                        <td>ID-45189-001</td>
-                        <td>Deri</td>
-                        <td>15 April 2026</td>
-                        <td><span style="color: var(--secondary);">Terkonfirmasi</span></td>
-                        <td class="action-buttons">
-                            <button class="btn-view" title="Lihat Detail"><i class='bx bx-show'></i></button>
-                            <button class="btn-delete" title="Hapus"><i class='bx bxs-trash'></i></button>
-                        </td>
-                    </tr>
-                     <tr>
-                        <td>ID-1015814-001</td>
-                        <td>John</td>
-                        <td>14 April 2026</td>
-                        <td><span style="color: #f1c40f;">Pending</span></td>
-                        <td class="action-buttons">
-                            <button class="btn-view" title="Lihat Detail"><i class='bx bx-show'></i></button>
-                            <button class="btn-delete" title="Hapus"><i class='bx bxs-trash'></i></button>
-                        </td>
-                    </tr>
+                    <tr><td colspan="8" style="text-align: center;">Memuat data...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -399,6 +456,9 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- jsPDF & AutoTable untuk Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Script -->
     <script>
@@ -481,6 +541,127 @@
                 window.location.href = 'index.html';
             });
         });
+
+        // --- LOGIC LOAD DATA TIKET ONLINE ---
+        let allTickets = []; // Simpan data untuk search
+
+        async function loadTickets() {
+            const tableBody = document.querySelector('tbody');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tiketonline')
+                    .select('*')
+                    .order('created_at', { ascending: false }); // Urutkan terbaru
+
+                if (error) throw error;
+
+                allTickets = data || [];
+                renderTable(allTickets);
+
+            } catch (err) {
+                console.error('Error loading tickets:', err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger);">Gagal memuat data: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderTable(tickets) {
+            const tableBody = document.querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            if (tickets.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Belum ada tiket terjual.</td></tr>';
+                return;
+            }
+
+            tickets.forEach(tiket => {
+                const buktiLink = tiket.bukti_bayar 
+                    ? `<a href="${tiket.bukti_bayar}" target="_blank" style="color: var(--secondary); text-decoration: underline;">Lihat</a>` 
+                    : '<span style="color: #666;">-</span>';
+
+                const row = `
+                    <tr>
+                        <td>${tiket.id_tiket || '-'}</td>
+                        <td>${tiket.nama_lengkap || '-'}</td>
+                        <td>${tiket.alamat || '-'}</td>
+                        <td>${tiket.nomor_wa || '-'}</td>
+                        <td>${tiket.email || '-'}</td>
+                        <td>${buktiLink}</td>
+                        <td>${tiket.tanggal_transaksi || '-'}</td>
+                        <td class="action-buttons">
+                            <button class="btn-delete" onclick="deleteTicket('${tiket.id_tiket}')" title="Hapus"><i class='bx bxs-trash'></i></button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTickets);
+
+        // --- LOGIC SEARCH ---
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filteredTickets = allTickets.filter(t => 
+                (t.nama_lengkap && t.nama_lengkap.toLowerCase().includes(keyword)) ||
+                (t.id_tiket && t.id_tiket.toLowerCase().includes(keyword)) ||
+                (t.email && t.email.toLowerCase().includes(keyword))
+            );
+            renderTable(filteredTickets);
+        });
+
+        // --- LOGIC DELETE ---
+        async function deleteTicket(id) {
+            if(confirm(`Yakin ingin menghapus tiket ${id}?`)) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('tiketonline')
+                        .delete()
+                        .eq('id_tiket', id);
+                    
+                    if(error) throw error;
+                    alert('Data berhasil dihapus');
+                    loadTickets();
+                } catch(err) {
+                    alert('Gagal hapus: ' + err.message);
+                }
+            }
+        }
+
+        // --- LOGIC EXPORT PDF ---
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+
+            // Header
+            doc.setFontSize(18);
+            doc.text("Laporan Tiket Terjual - Arga Music Fest", 14, 22);
+            doc.setFontSize(11);
+            doc.setTextColor(100);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 30);
+
+            // Tabel
+            doc.autoTable({
+                head: [['ID Tiket', 'Nama Lengkap', 'Alamat', 'No. WA', 'Email', 'Tgl Transaksi']],
+                body: allTickets.map(t => [
+                    t.id_tiket, 
+                    t.nama_lengkap, 
+                    t.alamat, 
+                    t.nomor_wa, 
+                    t.email, 
+                    t.tanggal_transaksi
+                ]),
+                startY: 40,
+                theme: 'grid'
+            });
+
+            doc.save(`Laporan_Tiket_${Date.now()}.pdf`);
+        }
+
+        // --- LOGIC SCAN TIKET (Placeholder) ---
+        function scanTiket() {
+            alert("Fitur Scan Tiket (Kamera) akan diaktifkan di sini.");
+        }
     </script>
 </body>
 </html>
