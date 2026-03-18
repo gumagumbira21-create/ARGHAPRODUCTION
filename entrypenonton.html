@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry Penonton - Arga Production</title>
+    <!-- Google Fonts: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Boxicons untuk Icon -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* Fix untuk jsPDF AutoTable */
+        .jspdf-plugin-style { font-family: helvetica, sans-serif; }
+        #reader { width: 100%; border-radius: 5px; overflow: hidden; background: black; }
+        
+        /* Style untuk Container Hasil Scan */
+        #scan-result {
+            margin-top: 15px; 
+            text-align: left; 
+            background-color: #252525; 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid #444;
+            display: none; /* Sembunyikan default */
+        }
+        #scan-result.show { display: block; animation: fadeIn 0.3s; }
+        #scan-result h4 { color: var(--secondary); margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        #scan-result p { margin-bottom: 5px; font-size: 0.95rem; }
+        #scan-result .label { color: var(--text-gray); font-weight: 600; width: 80px; display: inline-block; }
+    </style>
+    <style>
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --sidebar-bg: #181818;
+            --text-light: #f1f1f1;
+            --text-gray: #b2bec3;
+            --danger: #ff7675;
+            --header-height: 70px;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            text-decoration: none;
+            list-style: none;
+        }
+
+        body {
+            background: linear-gradient(rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 0.5)), url('bgdashbor.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-light);
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVBAR --- */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background-color: rgba(30, 30, 30, 0.95);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header_toggle {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: 0.3s;
+        }
+
+        .header_toggle:hover {
+            color: var(--primary);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            letter-spacing: 1px;
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        /* --- SIDEBAR --- */
+        .l-navbar {
+            position: fixed;
+            top: var(--header-height);
+            left: -100%;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background-color: var(--sidebar-bg);
+            padding: 20px 0;
+            transition: 0.4s;
+            z-index: 99;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+        }
+
+        .nav_list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 25px;
+            color: var(--text-gray);
+            transition: 0.3s;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .nav_link-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav_icon {
+            font-size: 1.5rem;
+        }
+
+        .nav_link:hover, .nav_link.active {
+            color: var(--text-light);
+            background-color: var(--primary);
+        }
+
+        /* Submenu (Dropdown) Styles */
+        .sub-menu {
+            background-color: #121212;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .sub-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px 12px 65px;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+
+        .sub-menu a:hover {
+            color: var(--secondary);
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .sub-menu a.active {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .dropdown_icon {
+            transition: transform 0.3s;
+        }
+
+        .nav_item.show .sub-menu {
+            max-height: 200px;
+        }
+
+        .nav_item.show .dropdown_icon {
+            transform: rotate(180deg);
+        }
+
+        .l-navbar.show {
+            left: 0;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            position: relative;
+            margin-top: var(--header-height);
+            padding: 2rem;
+            transition: 0.4s;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        thead th {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background-color: #252525;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            background: none;
+            border: 1px solid #444;
+            color: var(--text-gray);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons .btn-view:hover {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .action-buttons .btn-delete:hover {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* --- FOOTER --- */
+        .admin-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.8rem;
+        }
+
+        /* Overlay untuk Sidebar (Global) */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 98;
+            display: none;
+        }
+        .overlay.show {
+            display: block;
+        }
+
+        /* Style untuk menu yang dinonaktifkan */
+        .disabled-menu {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @media screen and (max-width: 767px) {
+            .main-content {
+                padding: 1rem;
+            }
+            .table-tools {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* --- TABLE TOOLS STYLES --- */
+        .table-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .search-box input {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #121212;
+            color: white;
+            width: 100%;
+            min-width: 250px;
+        }
+
+        .btn-tool {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-pdf {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .btn-pdf:hover { background-color: #c0392b; }
+
+        .btn-scan {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-scan:hover { background-color: #5849be; }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay-form {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            z-index: 1001;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            animation: fadeInOverlay 0.3s;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-overlay-form.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px; /* Lebar disesuaikan untuk detail */
+            border: 1px solid #333;
+            animation: fadeInContent 0.3s ease-out;
+        }
+
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: var(--text-light);
+        }
+
+        .close-modal-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--danger);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .modal-footer .btn-cancel {
+            background-color: #444;
+            color: var(--text-light);
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-footer .btn-cancel:hover {
+            background-color: #555;
+        }
+
+        .modal-footer .btn-reject {
+            background-color: var(--danger);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .modal-footer .btn-reject:hover { background-color: #c0392b; }
+
+        .modal-footer .btn-send {
+            background: linear-gradient(45deg, var(--secondary), #00b894);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .modal-footer .btn-send:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body id="body-pd">
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-left">
+            <i class='bx bx-menu header_toggle' id="header-toggle"></i>
+            <div class="brand-logo">
+                <img src="arghamusic.png" alt="Logo" id="nav-logo" onerror="this.style.display='none'">
+                <span class="brand-name" id="nav-brand-name">ARGA<span>Production</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="l-navbar" id="nav-bar">
+        <nav class="nav">
+            <ul class="nav_list">
+                <li><a href="dashboardadmin.html" class="nav_link"><div class="nav_link-content"><i class='bx bx-grid-alt nav_icon'></i><span class="nav_name">Dashboard</span></div></a></li>
+                <li><a href="identitas.html" class="nav_link"><div class="nav_link-content"><i class='bx bx-store nav_icon'></i><span class="nav_name">Identitas Usaha</span></div></a></li>
+
+                <li class="nav_item" id="menu-pengaturan">
+                    <div class="nav_link" onclick="toggleSubmenu('menu-pengaturan')"><div class="nav_link-content"><i class='bx bx-cog nav_icon'></i><span class="nav_name">Pengaturan</span></div><i class='bx bx-chevron-down dropdown_icon'></i></div>
+                    <ul class="sub-menu">
+                        <li><a href="pengaturanadmin.html">Pengaturan Admin</a></li>
+                        <li><a href="Akunbank.html">Akun Pembayaran</a></li>
+                    </ul>
+                </li>
+
+                <!-- Daftar Tiket (Dropdown) - Aktif & Terbuka -->
+                <li class="nav_item show" id="menu-tiket">
+                    <div class="nav_link" onclick="toggleSubmenu('menu-tiket')"><div class="nav_link-content"><i class='bx bx-ticket nav_icon'></i><span class="nav_name">Daftar Tiket</span></div><i class='bx bx-chevron-down dropdown_icon'></i></div>
+                    <ul class="sub-menu">
+                        <li><a href="daftartiket.html">Tiket Terjual</a></li>
+                        <li><a href="entrypenonton.html" class="active">Entry Penonton</a></li>
+                        <li><a href="#">Tiket Scanned</a></li>
+
+                    </ul>
+                </li>
+
+                <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-wallet nav_icon'></i><span class="nav_name">Pemasukan</span></div></a></li>
+                <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-bar-chart-alt-2 nav_icon'></i><span class="nav_name">Laporan</span></div></a></li>
+                <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-data nav_icon'></i><span class="nav_name">Backup & Reset</span></div></a></li>
+                
+                <li style="margin-top: 20px; border-top: 1px solid #333;">
+                    <a href="#" id="logout-btn" class="nav_link" style="color: var(--danger);"><div class="nav_link-content"><i class='bx bx-log-out nav_icon'></i><span class="nav_name">Logout</span></div></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-header">
+            <h2 style="color: var(--text-light);">Daftar Entry Penonton (Tiket Valid)</h2>
+        </div>
+
+        <!-- Container: Cari, Export, Scan -->
+        <div class="table-tools">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cari Nama, ID, atau Email...">
+            </div>
+            <div class="action-group">
+                <button class="btn-tool btn-pdf" onclick="exportToPDF()">
+                    <i class='bx bxs-file-pdf'></i> Export PDF
+                </button>
+                <button class="btn-tool btn-scan">
+                    <i class='bx bx-scan'></i> SCAN TIKET
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabel Daftar Tiket -->
+        <div class="table-container">
+            <table id="tiketTable">
+                <thead>
+                    <tr>
+                        <th>ID Tiket</th>
+                        <th>Nama Lengkap</th>
+                        <th>Alamat</th>
+                        <th>Nomor WA</th>
+                        <th>Email</th>
+                        <th>Bukti Bayar</th>
+                        <th>Tanggal Transaksi</th>
+                        <th>Aksi</th> <!-- Tetap ada untuk delete -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="8" style="text-align: center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="admin-footer">
+            <p>© 2026 Arga Music Fest - Admin Control Panel</p>
+        </footer>
+    </main>
+
+    <!-- Modal Detail Tiket -->
+    <div id="modal-detail-tiket" class="modal-overlay-form">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Tiket</h3>
+                <span class="close-modal-btn" id="btn-close-detail">&times;</span>
+            </div>
+            <div id="detail-content" style="padding-top: 15px; color: var(--text-gray);">
+                <p><strong>ID Tiket:</strong> <span id="detail-id-tiket" style="color: white;"></span></p>
+                <p><strong>Nama Lengkap:</strong> <span id="detail-nama" style="color: white;"></span></p>
+                <p><strong>Alamat:</strong> <span id="detail-alamat" style="color: white;"></span></p>
+                <p><strong>Nomor WA:</strong> <span id="detail-wa" style="color: white;"></span></p>
+                <p><strong>Email:</strong> <span id="detail-email" style="color: white;"></span></p>
+                <p><strong>Tanggal Transaksi:</strong> <span id="detail-tanggal" style="color: white;"></span></p>
+                <hr style="border-color: #333; margin: 20px 0;">
+                <p><strong>Bukti Pembayaran:</strong></p>
+                <div style="margin-top: 10px; max-height: 400px; overflow-y: auto; border-radius: 5px; border: 1px solid #444;">
+                     <img id="detail-bukti-bayar" src="" alt="Bukti Bayar" style="width: 100%; height: auto; display: block;">
+                </div>
+            </div>
+             <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="btn-cancel-detail">Cancel</button>
+                <button type="button" class="btn-reject" id="btn-reject-detail">Reject</button>
+                <button type="button" class="btn-send" id="btn-send-detail">Resend Ticket</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Scan Tiket -->
+    <div id="modal-scan-tiket" class="modal-overlay-form">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Scan QR Code Tiket</h3>
+                <span class="close-modal-btn" id="btn-close-scan">&times;</span>
+            </div>
+            <div id="reader"></div>
+            <div id="scan-result"></div>
+             <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="btn-cancel-scan">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- jsPDF & AutoTable untuk Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <!-- Html5Qrcode Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <!-- Script -->
+    <script>
+        // Proteksi Halaman: Cek login
+        (function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn !== 'true') {
+                alert('Anda harus login terlebih dahulu.');
+                window.location.href = 'index.html';
+            }
+        })();
+
+        const showNavbar = (toggleId, navId, bodyId, overlayId) => {
+            const toggle = document.getElementById(toggleId), nav = document.getElementById(navId), overlay = document.getElementById(overlayId);
+            if(toggle && nav && overlay){
+                toggle.addEventListener('click', ()=>{ nav.classList.toggle('show'); overlay.classList.toggle('show'); });
+                overlay.addEventListener('click', () => { nav.classList.remove('show'); overlay.classList.remove('show'); });
+            }
+        }
+        showNavbar('header-toggle', 'nav-bar', 'body-pd', 'overlay');
+
+        function toggleSubmenu(id) {
+            const parent = document.getElementById(id);
+            const isOpen = parent.classList.contains('show');
+            document.querySelectorAll('.nav_item').forEach(item => item.classList.remove('show'));
+            if (!isOpen) {
+                parent.classList.add('show');
+            }
+        }
+
+        // Fetch Identity (Logo & Nama Usaha)
+        const supabaseUrl = 'https://gnwosoaguhvqfunvzqqh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdud29zb2FndWh2cWZ1bnZ6cXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDc5NzAsImV4cCI6MjA4ODY4Mzk3MH0.G_HocHF6DjW7mtYTGkEwynhtkVjkmP1Wo5MAdczAmWI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function loadIdentity() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('pengaturan')
+                    .select('nama_eo, logo')
+                    .limit(1);
+                
+                if (data && data.length > 0) {
+                    const settings = data[0];
+                    // Update Logo
+                    if (settings.logo) {
+                        document.getElementById('nav-logo').src = settings.logo + '?' + new Date().getTime();
+                        document.getElementById('nav-logo').style.display = 'block';
+                    }
+                    // Update Nama Usaha
+                    if (settings.nama_eo) {
+                        document.getElementById('nav-brand-name').textContent = settings.nama_eo;
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memuat identitas:", err);
+            }
+        }
+
+        // Pengaturan Akses Menu & Logout
+        document.addEventListener('DOMContentLoaded', () => {
+            loadIdentity();
+
+            const userRole = localStorage.getItem('userRole');
+
+            // Jika role adalah admin_staff, nonaktifkan menu tertentu
+            if (userRole === 'admin_staff') {
+                document.querySelector('a[href="identitas.html"]').parentElement.classList.add('disabled-menu');
+                document.getElementById('menu-pengaturan').classList.add('disabled-menu');
+                document.querySelectorAll('.nav_link .nav_name').forEach(el => {
+                    if (el.textContent === 'Backup & Reset') {
+                        el.closest('li').classList.add('disabled-menu');
+                    }
+                });
+            }
+
+            document.getElementById('logout-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+        });
+
+        // --- LOGIC LOAD DATA TIKET VALID ---
+        let allTickets = []; // Simpan data untuk search
+
+        async function loadTickets() {
+            const tableBody = document.querySelector('tbody');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tiketvalid') // SUMBER DATA DIUBAH KE tiketvalid
+                    .select('*')
+                    .order('tanggal_transaksi', { ascending: false }); 
+
+                if (error) throw error;
+
+                allTickets = data || [];
+                renderTable(allTickets);
+
+            } catch (err) {
+                console.error('Error loading tickets:', err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger);">Gagal memuat data: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderTable(tickets) {
+            const tableBody = document.querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            if (tickets.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Belum ada tiket valid.</td></tr>';
+                return;
+            }
+
+            tickets.forEach(tiket => {
+                const buktiLink = tiket.bukti_bayar 
+                    ? `<a href="${tiket.bukti_bayar}" target="_blank" style="color: var(--secondary); text-decoration: underline;">Lihat</a>` 
+                    : '<span style="color: #666;">-</span>';
+
+                const row = `
+                    <tr>
+                        <td>${tiket.id_tiket || '-'}</td>
+                        <td>${tiket.nama_lengkap || '-'}</td>
+                        <td>${tiket.alamat || '-'}</td>
+                        <td>${tiket.nomor_wa || '-'}</td>
+                        <td>${tiket.email || '-'}</td>
+                        <td>${buktiLink}</td>
+                        <td>${tiket.tanggal_transaksi || '-'}</td>
+                        <td class="action-buttons">
+                            <button class="btn-view" onclick="showTicketDetails('${tiket.id_tiket}')" title="Lihat Detail"><i class='bx bx-show'></i></button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTickets);
+
+        // --- LOGIC SEARCH ---
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filteredTickets = allTickets.filter(t => 
+                (t.nama_lengkap && t.nama_lengkap.toLowerCase().includes(keyword)) ||
+                (t.id_tiket && t.id_tiket.toLowerCase().includes(keyword)) ||
+                (t.email && t.email.toLowerCase().includes(keyword))
+            );
+            renderTable(filteredTickets);
+        });
+
+        // --- LOGIC EXPORT PDF ---
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+
+            // Header
+            doc.setFontSize(18);
+            doc.text("Laporan Entry Penonton (Tiket Valid) - Arga Music Fest", 14, 22);
+            doc.setFontSize(11);
+            doc.setTextColor(100);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 30);
+
+            // Tabel
+            doc.autoTable({
+                head: [['ID Tiket', 'Nama Lengkap', 'Alamat', 'No. WA', 'Email', 'Tgl Transaksi']],
+                body: allTickets.map(t => [
+                    t.id_tiket, 
+                    t.nama_lengkap, 
+                    t.alamat, 
+                    t.nomor_wa, 
+                    t.email, 
+                    t.tanggal_transaksi
+                ]),
+                startY: 40,
+                theme: 'grid'
+            });
+
+            doc.save(`Laporan_Tiket_Valid_${Date.now()}.pdf`);
+        }
+
+        // --- LOGIC MODAL DETAIL ---
+        const modalDetail = document.getElementById('modal-detail-tiket');
+        const btnCloseDetail = document.getElementById('btn-close-detail');
+        const btnCancelDetail = document.getElementById('btn-cancel-detail');
+        const btnSendTicket = document.getElementById('btn-send-detail');
+
+        function showTicketDetails(ticketId) {
+            const ticket = allTickets.find(t => t.id_tiket === ticketId);
+            if (!ticket) {
+                alert('Data tiket tidak ditemukan!');
+                return;
+            }
+
+            // Populate modal
+            document.getElementById('detail-id-tiket').textContent = ticket.id_tiket || '-';
+            document.getElementById('detail-nama').textContent = ticket.nama_lengkap || '-';
+            document.getElementById('detail-alamat').textContent = ticket.alamat || '-';
+            document.getElementById('detail-wa').textContent = ticket.nomor_wa || '-';
+            document.getElementById('detail-email').textContent = ticket.email || '-';
+            document.getElementById('detail-tanggal').textContent = ticket.tanggal_transaksi || '-';
+            
+            const buktiBayarImg = document.getElementById('detail-bukti-bayar');
+            if (ticket.bukti_bayar) {
+                buktiBayarImg.src = ticket.bukti_bayar;
+                buktiBayarImg.style.display = 'block';
+            } else {
+                buktiBayarImg.src = '';
+                buktiBayarImg.style.display = 'none';
+            }
+
+            // Show modal
+            modalDetail.classList.add('active');
+        }
+
+        function closeDetailModal() {
+            modalDetail.classList.remove('active');
+            document.getElementById('detail-bukti-bayar').src = ''; // Clear image src
+        }
+
+        // Helper to load image for PDF
+        function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Gagal memuat gambar: ' + url));
+                img.src = url;
+            });
+        }
+
+        // --- LOGIC GENERATE PDF TICKET (RESEND MODE) ---
+        async function generateTicketPDF() {
+            const btn = document.getElementById('btn-send-detail');
+            const originalText = btn.textContent;
+            btn.textContent = 'Membuat PDF...';
+            btn.disabled = true;
+
+            try {
+                // 0. Load Background Image First
+                const bgImage = await loadImage('bgtiket.jpg');
+
+                // 1. Get data from modal
+                const ticketId = document.getElementById('detail-id-tiket').textContent;
+                const nama = document.getElementById('detail-nama').textContent;
+                const email = document.getElementById('detail-email').textContent;
+
+                // 2. Prepare data for QR Code (JSON format is robust)
+                const qrData = { "ID Tiket": ticketId, "Nama": nama, "Email": email };
+                const qrDataString = JSON.stringify(qrData);
+
+                // 3. Generate QR Code image data URL
+                const qr = qrcode(0, 'L'); // type 0 = auto, error correction L
+                qr.addData(qrDataString);
+                qr.make();
+                const qrCodeImage = qr.createDataURL(6, 4); // cellSize=6, margin=4
+
+                // 4. Create PDF using jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [88, 125] }); // Ukuran seperti kartu nama/tiket
+
+                // --- PDF Design ---
+                const eventName = "Kelapa Food Festival VOL 1";
+                const eoName = document.getElementById('nav-brand-name').textContent || "ARGA Production";
+
+                // Use Image Background
+                doc.addImage(bgImage, 'JPEG', 0, 0, 88, 125);
+
+                doc.setFontSize(14).setFont('helvetica', 'bold').setTextColor('#FFFFFF').text(eventName, 44, 20, { align: 'center' });
+                doc.setFontSize(9).setFont('helvetica', 'normal').setTextColor('#DDDDDD').text("17 - 19 April 2026", 44, 27, { align: 'center' });
+                doc.setDrawColor(108, 92, 231).setLineWidth(0.5).line(10, 35, 78, 35);
+                doc.setFontSize(12).setFont('helvetica', 'bold').setTextColor('#FFFFFF').text(nama, 10, 45);
+                doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor('#DDDDDD').text(`ID: ${ticketId}`, 10, 50);
+                doc.addImage(qrCodeImage, 'PNG', 24, 58, 40, 40);
+                
+                doc.setFontSize(7).setTextColor('#FFFFFF').text("Tunjukkan QR Code ini di pintu masuk.", 44, 102, { align: 'center' });
+                doc.text(`Oleh: ${eoName}`, 44, 106, { align: 'center' });
+
+                doc.setFont('helvetica', 'bold').text("Attention !!:", 44, 113, { align: 'center' });
+
+                // Draw black background for the attention text
+                doc.setFillColor(0, 0, 0); // Black
+                doc.rect(4, 114.5, 80, 6, 'F'); // x, y, width, height, style (Fill)
+
+                // Set text to red and draw it
+                doc.setTextColor(255, 0, 0); // Red
+                doc.setFont('helvetica', 'normal').setFontSize(6).text("QR Code Ticketing ini hanya dapat di gunakan sekali pakai, setelah QR Code di scan petugas maka secara otomatis Tiket berstatus Telah Di Gunakan.", 44, 116, { align: 'center', maxWidth: 80, lineHeightFactor: 1.2 });
+
+                // Reset text color to default (white for this design)
+                doc.setTextColor('#FFFFFF');
+
+                // 5. Save the PDF
+                // Membuat nama file yang aman dari nama customer
+                const sanitizedNama = nama.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+                const pdfFileName = `E-Ticket_${sanitizedNama}.pdf`;
+                doc.save(pdfFileName);
+
+                // --- CATATAN: Karena ini halaman Entry Penonton, kita TIDAK memindahkan data lagi ---
+                // Data sudah ada di tiketvalid, jadi kita hanya kirim ulang PDF/WA.
+
+                // Beri notifikasi dan siapkan pesan WhatsApp
+                alert('E-Ticket (Copy) berhasil dibuat! Membuka WhatsApp...');
+
+                // 6. Siapkan dan buka link WhatsApp
+                const nomorWA = document.getElementById('detail-wa').textContent.trim().replace(/\D/g, '');
+                let formattedWA = nomorWA;
+                // Asumsikan nomor Indonesia, ganti '0' di depan dengan '62'
+                if (formattedWA.startsWith('0')) {
+                    formattedWA = '62' + formattedWA.substring(1);
+                }
+
+                const whatsappBody = `Halo ${nama},\nTerimakasih atas kepercayaan anda menggunakan fitur Tiket Online.  Berikut ini adalah tiket E-Ticket untuk acara Kelapa Food Festival VOL 1 milik anda. \nCara Menggunakannya :\n1. Tunjukan E-Tiket kepada Petugas Gate\n2. Petugas akan menscaning QR Code pada E-Tiket anda\n3. Anda dapat masuk ke venue. \n\nE-Tiket hanya dapat di gunakan sekali pakai. jangan sampai hilang.\n\nSalam Kami, Argha Production`;
+
+                const whatsappLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(whatsappBody)}`;
+
+                // Buka WhatsApp di tab baru
+                window.open(whatsappLink, '_blank');
+
+                closeDetailModal();
+
+            } catch (error) {
+                console.error("Gagal membuat PDF:", error);
+                alert("Terjadi kesalahan saat membuat E-Ticket: " + error.message);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        btnCloseDetail.addEventListener('click', closeDetailModal);
+        btnCancelDetail.addEventListener('click', closeDetailModal);
+        btnSendTicket.addEventListener('click', generateTicketPDF);
+        modalDetail.addEventListener('click', (e) => { if (e.target === modalDetail) closeDetailModal(); });
+
+        // --- LOGIC SCAN TIKET (Html5Qrcode) ---
+        let html5QrCode;
+
+        async function startScanner() {
+            const modalScan = document.getElementById('modal-scan-tiket');
+            modalScan.classList.add('active');
+            
+            // Reset hasil scan sebelumnya
+            document.getElementById('scan-result').classList.remove('show');
+
+            // Tunggu sebentar agar modal tampil sebelum inisialisasi kamera
+            await new Promise(r => setTimeout(r, 300));
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            
+            // Konfigurasi: Gunakan kamera belakang (environment), fps 10
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            try {
+                await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+            } catch (err) {
+                console.error("Error starting scanner", err);
+                document.getElementById('scan-result').innerText = "Gagal akses kamera: " + err;
+            }
+        }
+
+        async function stopScanner() {
+            const modalScan = document.getElementById('modal-scan-tiket');
+            modalScan.classList.remove('active');
+            
+            if (html5QrCode && html5QrCode.isScanning) {
+                try { await html5QrCode.stop(); } 
+                catch (err) { console.error("Failed to stop", err); }
+            }
+            document.getElementById('scan-result').classList.remove('show');
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Saat QR Code terdeteksi
+            html5QrCode.pause(); // Pause agar tidak scan berulang cepat
+            
+            const resultContainer = document.getElementById('scan-result');
+            
+            try {
+                // Coba parsing JSON dari QR Code
+                const data = JSON.parse(decodedText);
+                let htmlContent = '<h4>Tiket Terdeteksi</h4>';
+                
+                // Format tampilan data secara rapi
+                if (data["ID Tiket"]) htmlContent += `<p><span class="label">ID Tiket:</span> ${data["ID Tiket"]}</p>`;
+                if (data["Nama"]) htmlContent += `<p><span class="label">Nama:</span> ${data["Nama"]}</p>`;
+                if (data["Email"]) htmlContent += `<p><span class="label">Email:</span> ${data["Email"]}</p>`;
+                
+                // Tambahkan data lain jika ada
+                Object.keys(data).forEach(key => {
+                    if (!["ID Tiket", "Nama", "Email"].includes(key)) {
+                        htmlContent += `<p><span class="label">${key}:</span> ${data[key]}</p>`;
+                    }
+                });
+
+                resultContainer.innerHTML = htmlContent;
+            } catch (e) {
+                // Jika bukan format JSON (Text biasa)
+                resultContainer.innerHTML = `<h4>Data Scan</h4><p>${decodedText}</p>`;
+            }
+
+            resultContainer.classList.add('show');
+        }
+
+        document.querySelector('.btn-scan').addEventListener('click', startScanner);
+        document.getElementById('btn-close-scan').addEventListener('click', stopScanner);
+        document.getElementById('btn-cancel-scan').addEventListener('click', stopScanner);
+    </script>
+</body>
+</html>
