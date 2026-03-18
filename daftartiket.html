@@ -53,6 +53,7 @@
             width: 100%;
             height: var(--header-height);
             background-color: rgba(30, 30, 30, 0.95);
+            -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
@@ -354,6 +355,122 @@
             display: flex;
             gap: 10px;
         }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay-form {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            z-index: 1001;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            animation: fadeInOverlay 0.3s;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-overlay-form.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px; /* Lebar disesuaikan untuk detail */
+            border: 1px solid #333;
+            animation: fadeInContent 0.3s ease-out;
+        }
+
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: var(--text-light);
+        }
+
+        .close-modal-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--danger);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .modal-footer .btn-cancel {
+            background-color: #444;
+            color: var(--text-light);
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-footer .btn-cancel:hover {
+            background-color: #555;
+        }
+
+        .modal-footer .btn-reject {
+            background-color: var(--danger);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .modal-footer .btn-reject:hover { background-color: #c0392b; }
+
+        .modal-footer .btn-send {
+            background: linear-gradient(45deg, var(--secondary), #00b894);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .modal-footer .btn-send:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body id="body-pd">
@@ -389,7 +506,9 @@
                     <div class="nav_link" onclick="toggleSubmenu('menu-tiket')"><div class="nav_link-content"><i class='bx bx-ticket nav_icon'></i><span class="nav_name">Daftar Tiket</span></div><i class='bx bx-chevron-down dropdown_icon'></i></div>
                     <ul class="sub-menu">
                         <li><a href="daftartiket.html" class="active">Tiket Terjual</a></li>
-                        <li><a href="#">Entry Penonton</a></li>
+                        <li><a href="entrypenonton.html">Entry Penonton</a></li>
+                        <li><a href="#">Tiket Scanned</a></li>
+
                     </ul>
                 </li>
 
@@ -422,9 +541,6 @@
                 <button class="btn-tool btn-pdf" onclick="exportToPDF()">
                     <i class='bx bxs-file-pdf'></i> Export PDF
                 </button>
-                <button class="btn-tool btn-scan" onclick="scanTiket()">
-                    <i class='bx bx-qr-scan'></i> Scan Tiket
-                </button>
             </div>
         </div>
 
@@ -454,10 +570,40 @@
         </footer>
     </main>
 
+    <!-- Modal Detail Tiket -->
+    <div id="modal-detail-tiket" class="modal-overlay-form">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Tiket</h3>
+                <span class="close-modal-btn" id="btn-close-detail">&times;</span>
+            </div>
+            <div id="detail-content" style="padding-top: 15px; color: var(--text-gray);">
+                <p><strong>ID Tiket:</strong> <span id="detail-id-tiket" style="color: white;"></span></p>
+                <p><strong>Nama Lengkap:</strong> <span id="detail-nama" style="color: white;"></span></p>
+                <p><strong>Alamat:</strong> <span id="detail-alamat" style="color: white;"></span></p>
+                <p><strong>Nomor WA:</strong> <span id="detail-wa" style="color: white;"></span></p>
+                <p><strong>Email:</strong> <span id="detail-email" style="color: white;"></span></p>
+                <p><strong>Tanggal Transaksi:</strong> <span id="detail-tanggal" style="color: white;"></span></p>
+                <hr style="border-color: #333; margin: 20px 0;">
+                <p><strong>Bukti Pembayaran:</strong></p>
+                <div style="margin-top: 10px; max-height: 400px; overflow-y: auto; border-radius: 5px; border: 1px solid #444;">
+                     <img id="detail-bukti-bayar" src="" alt="Bukti Bayar" style="width: 100%; height: auto; display: block;">
+                </div>
+            </div>
+             <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="btn-cancel-detail">Cancel</button>
+                <button type="button" class="btn-reject" id="btn-reject-detail">Reject</button>
+                <button type="button" class="btn-send" id="btn-send-detail">Send Ticket</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- jsPDF & AutoTable untuk Export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Script -->
@@ -588,7 +734,7 @@
                         <td>${buktiLink}</td>
                         <td>${tiket.tanggal_transaksi || '-'}</td>
                         <td class="action-buttons">
-                            <button class="btn-delete" onclick="deleteTicket('${tiket.id_tiket}')" title="Hapus"><i class='bx bxs-trash'></i></button>
+                            <button class="btn-view" onclick="showTicketDetails('${tiket.id_tiket}')" title="Lihat Detail"><i class='bx bx-show'></i></button>
                         </td>
                     </tr>
                 `;
@@ -609,24 +755,6 @@
             );
             renderTable(filteredTickets);
         });
-
-        // --- LOGIC DELETE ---
-        async function deleteTicket(id) {
-            if(confirm(`Yakin ingin menghapus tiket ${id}?`)) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('tiketonline')
-                        .delete()
-                        .eq('id_tiket', id);
-                    
-                    if(error) throw error;
-                    alert('Data berhasil dihapus');
-                    loadTickets();
-                } catch(err) {
-                    alert('Gagal hapus: ' + err.message);
-                }
-            }
-        }
 
         // --- LOGIC EXPORT PDF ---
         function exportToPDF() {
@@ -658,10 +786,179 @@
             doc.save(`Laporan_Tiket_${Date.now()}.pdf`);
         }
 
-        // --- LOGIC SCAN TIKET (Placeholder) ---
-        function scanTiket() {
-            alert("Fitur Scan Tiket (Kamera) akan diaktifkan di sini.");
+        // --- LOGIC MODAL DETAIL ---
+        const modalDetail = document.getElementById('modal-detail-tiket');
+        const btnCloseDetail = document.getElementById('btn-close-detail');
+        const btnCancelDetail = document.getElementById('btn-cancel-detail');
+        const btnSendTicket = document.getElementById('btn-send-detail');
+
+        function showTicketDetails(ticketId) {
+            const ticket = allTickets.find(t => t.id_tiket === ticketId);
+            if (!ticket) {
+                alert('Data tiket tidak ditemukan!');
+                return;
+            }
+
+            // Populate modal
+            document.getElementById('detail-id-tiket').textContent = ticket.id_tiket || '-';
+            document.getElementById('detail-nama').textContent = ticket.nama_lengkap || '-';
+            document.getElementById('detail-alamat').textContent = ticket.alamat || '-';
+            document.getElementById('detail-wa').textContent = ticket.nomor_wa || '-';
+            document.getElementById('detail-email').textContent = ticket.email || '-';
+            document.getElementById('detail-tanggal').textContent = ticket.tanggal_transaksi || '-';
+            
+            const buktiBayarImg = document.getElementById('detail-bukti-bayar');
+            if (ticket.bukti_bayar) {
+                buktiBayarImg.src = ticket.bukti_bayar;
+                buktiBayarImg.style.display = 'block';
+            } else {
+                buktiBayarImg.src = '';
+                buktiBayarImg.style.display = 'none';
+            }
+
+            // Show modal
+            modalDetail.classList.add('active');
         }
+
+        function closeDetailModal() {
+            modalDetail.classList.remove('active');
+            document.getElementById('detail-bukti-bayar').src = ''; // Clear image src
+        }
+
+        // Helper to load image for PDF
+        function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Gagal memuat gambar: ' + url));
+                img.src = url;
+            });
+        }
+
+        // --- LOGIC GENERATE PDF TICKET ---
+        async function generateTicketPDF() {
+            const btn = document.getElementById('btn-send-detail');
+            const originalText = btn.textContent;
+            btn.textContent = 'Membuat PDF...';
+            btn.disabled = true;
+
+            try {
+                // 0. Load Background Image First
+                const bgImage = await loadImage('bgtiket.jpg');
+
+                // 1. Get data from modal
+                const ticketId = document.getElementById('detail-id-tiket').textContent;
+                const nama = document.getElementById('detail-nama').textContent;
+                const email = document.getElementById('detail-email').textContent;
+
+                // 2. Prepare data for QR Code (JSON format is robust)
+                const qrData = { "ID Tiket": ticketId, "Nama": nama, "Email": email };
+                const qrDataString = JSON.stringify(qrData);
+
+                // 3. Generate QR Code image data URL
+                const qr = qrcode(0, 'L'); // type 0 = auto, error correction L
+                qr.addData(qrDataString);
+                qr.make();
+                const qrCodeImage = qr.createDataURL(6, 4); // cellSize=6, margin=4
+
+                // 4. Create PDF using jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [88, 125] }); // Ukuran seperti kartu nama/tiket
+
+                // --- PDF Design ---
+                const eventName = "Kelapa Food Festival VOL 1";
+                const eoName = document.getElementById('nav-brand-name').textContent || "ARGA Production";
+
+                // Use Image Background
+                doc.addImage(bgImage, 'JPEG', 0, 0, 88, 125);
+
+                doc.setFontSize(14).setFont('helvetica', 'bold').setTextColor('#FFFFFF').text(eventName, 44, 20, { align: 'center' });
+                doc.setFontSize(9).setFont('helvetica', 'normal').setTextColor('#DDDDDD').text("17 - 19 April 2026", 44, 27, { align: 'center' });
+                doc.setDrawColor(108, 92, 231).setLineWidth(0.5).line(10, 35, 78, 35);
+                doc.setFontSize(12).setFont('helvetica', 'bold').setTextColor('#FFFFFF').text(nama, 10, 45);
+                doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor('#DDDDDD').text(`ID: ${ticketId}`, 10, 50);
+                doc.addImage(qrCodeImage, 'PNG', 24, 58, 40, 40);
+                
+                doc.setFontSize(7).setTextColor('#FFFFFF').text("Tunjukkan QR Code ini di pintu masuk.", 44, 102, { align: 'center' });
+                doc.text(`Oleh: ${eoName}`, 44, 106, { align: 'center' });
+
+                doc.setFont('helvetica', 'bold').text("Attention !!:", 44, 113, { align: 'center' });
+
+                // Draw black background for the attention text
+                doc.setFillColor(0, 0, 0); // Black
+                doc.rect(4, 114.5, 80, 6, 'F'); // x, y, width, height, style (Fill)
+
+                // Set text to red and draw it
+                doc.setTextColor(255, 0, 0); // Red
+                doc.setFont('helvetica', 'normal').setFontSize(6).text("QR Code Ticketing ini hanya dapat di gunakan sekali pakai, setelah QR Code di scan petugas maka secara otomatis Tiket berstatus Telah Di Gunakan.", 44, 116, { align: 'center', maxWidth: 80, lineHeightFactor: 1.2 });
+
+                // Reset text color to default (white for this design)
+                doc.setTextColor('#FFFFFF');
+
+                // 5. Save the PDF
+                // Membuat nama file yang aman dari nama customer
+                const sanitizedNama = nama.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+                const pdfFileName = `E-Ticket_${sanitizedNama}.pdf`;
+                doc.save(pdfFileName);
+
+                // --- PROSES PINDAH DATA KE TIKETVALID ---
+                const currentTicket = allTickets.find(t => t.id_tiket === ticketId);
+                if (currentTicket) {
+                    // Siapkan data yang akan dipindahkan (sesuai struktur tabel)
+                    const ticketData = {
+                        id_tiket: currentTicket.id_tiket,
+                        nama_lengkap: currentTicket.nama_lengkap,
+                        alamat: currentTicket.alamat,
+                        nomor_wa: currentTicket.nomor_wa,
+                        email: currentTicket.email,
+                        tanggal_transaksi: currentTicket.tanggal_transaksi,
+                        bukti_bayar: currentTicket.bukti_bayar // Menyalin string URL/Path file saja
+                    };
+
+                    // 1. Insert ke tabel tiketvalid
+                    const { error: insertErr } = await supabaseClient.from('tiketvalid').insert([ticketData]);
+                    if (insertErr) throw new Error('Gagal menyimpan ke tiketvalid: ' + insertErr.message);
+
+                    // 2. Hapus dari tabel tiketonline
+                    const { error: deleteErr } = await supabaseClient.from('tiketonline').delete().eq('id_tiket', ticketId);
+                    if (deleteErr) throw new Error('Gagal menghapus dari tiketonline: ' + deleteErr.message);
+                }
+
+                // Beri notifikasi dan siapkan pesan WhatsApp
+                alert('E-Ticket berhasil dibuat & Data divalidasi! Membuka WhatsApp...');
+
+                // 6. Siapkan dan buka link WhatsApp
+                const nomorWA = document.getElementById('detail-wa').textContent.trim().replace(/\D/g, '');
+                let formattedWA = nomorWA;
+                // Asumsikan nomor Indonesia, ganti '0' di depan dengan '62'
+                if (formattedWA.startsWith('0')) {
+                    formattedWA = '62' + formattedWA.substring(1);
+                }
+
+                const whatsappBody = `Halo ${nama},\nTerimakasih atas kepercayaan anda menggunakan fitur Tiket Online.  Berikut ini adalah tiket E-Ticket untuk acara Kelapa Food Festival VOL 1 milik anda. \nCara Menggunakannya :\n1. Tunjukan E-Tiket kepada Petugas Gate\n2. Petugas akan menscaning QR Code pada E-Tiket anda\n3. Anda dapat masuk ke venue. \n\nE-Tiket hanya dapat di gunakan sekali pakai. jangan sampai hilang.\n\nSalam Kami, Argha Production`;
+
+                const whatsappLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(whatsappBody)}`;
+
+                // Buka WhatsApp di tab baru
+                window.open(whatsappLink, '_blank');
+
+                // Refresh halaman/tabel dan tutup modal karena data sudah pindah
+                closeDetailModal();
+                loadTickets();
+
+            } catch (error) {
+                console.error("Gagal membuat PDF:", error);
+                alert("Terjadi kesalahan saat membuat E-Ticket: " + error.message);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        btnCloseDetail.addEventListener('click', closeDetailModal);
+        btnCancelDetail.addEventListener('click', closeDetailModal);
+        btnSendTicket.addEventListener('click', generateTicketPDF);
+        modalDetail.addEventListener('click', (e) => { if (e.target === modalDetail) closeDetailModal(); });
     </script>
 </body>
 </html>
