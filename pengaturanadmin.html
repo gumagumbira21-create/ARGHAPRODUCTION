@@ -49,6 +49,7 @@
             width: 100%;
             height: var(--header-height);
             background-color: rgba(30, 30, 30, 0.95);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
@@ -316,6 +317,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.7);
+            -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(5px);
             z-index: 1001;
             display: none; /* Hidden by default */
@@ -476,7 +478,11 @@
 
                 <li class="nav_item" id="menu-tiket">
                     <div class="nav_link" onclick="toggleSubmenu('menu-tiket')"><div class="nav_link-content"><i class='bx bx-ticket nav_icon'></i><span class="nav_name">Daftar Tiket</span></div><i class='bx bx-chevron-down dropdown_icon'></i></div>
-                    <ul class="sub-menu"><li><a href="#">Tiket Terjual</a></li><li><a href="#">Entry Penonton</a></li></ul>
+                    <ul class="sub-menu">
+                        <li><a href="daftartiket.html">Tiket Terjual</a></li>
+                        <li><a href="entrypenonton.html">Entry Penonton</a></li>
+                        <li><a href="#">Tiket Scanned</a></li>
+                    </ul>
                 </li>
 
                 <li><a href="#" class="nav_link"><div class="nav_link-content"><i class='bx bx-wallet nav_icon'></i><span class="nav_name">Pemasukan</span></div></a></li>
