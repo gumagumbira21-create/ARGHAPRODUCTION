@@ -133,6 +133,7 @@
             height: 100%; /* Full height */
             overflow: auto; /* Enable scroll if needed */
             background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(8px); /* Efek Blur */
             justify-content: center;
             align-items: center;
@@ -259,9 +260,8 @@
                 <input type="text" id="tanggal_transaksi" name="tanggal_transaksi" placeholder="Pilih Tanggal" required>
             </div>
 
-            <div class="payment-info">
-                <p><strong>Nomor Rekening :</strong> 1234-5678-90 (Bank BRI)</p>
-                <p><strong>Nama Pemilik Akun :</strong> Arga Entertainment</p>
+            <div class="payment-info" id="payment-info-container">
+                <p>Memuat informasi pembayaran...</p>
             </div>
 
             <div class="form-group">
@@ -289,7 +289,7 @@
                 </svg>
             </div>
             <h3>Pembelian Tiket Online Berhasil!</h3>
-            <p style="font-size: 15px; line-height: 1.6; color: #666; margin-bottom: 20px;">Terimakasih telah melakukan pembelian tiket online di ArgaEntertainment. File tiket akan segera kami ke alamat email yang tercantum saat melakukan pembelian tiket maksimal dalam 1x24 jam, periksa secara berkala kotak masuk email anda. Mohon Menunggu</p>
+            <p style="font-size: 15px; line-height: 1.6; color: #666; margin-bottom: 20px;">Terimakasih telah melakukan pembelian tiket online di ArgaEntertainment. File tiket  kan segera kami ke momor whatsapp yang tercantum saat  pembelian tiket maksimal dalam 1x24 jam, periksa secara berkala kotak masuk whatsapp anda. Mohon Menunggu</p>
             <button class="btn-close-modal">Tutup</button>
         </div>
     </div>
@@ -301,6 +301,38 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
 
     <script>
+        // Inisialisasi Supabase Client
+        const supabaseUrl = 'https://gnwosoaguhvqfunvzqqh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdud29zb2FndWh2cWZ1bnZ6cXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDc5NzAsImV4cCI6MjA4ODY4Mzk3MH0.G_HocHF6DjW7mtYTGkEwynhtkVjkmP1Wo5MAdczAmWI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Fungsi Memuat Info Pembayaran dari tabel akunpembayaran
+        async function loadPaymentInfo() {
+            const container = document.getElementById('payment-info-container');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('akunpembayaran')
+                    .select('*');
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    container.innerHTML = ''; // Hapus teks loading
+                    data.forEach((acc, index) => {
+                        const div = document.createElement('div');
+                        if (index > 0) div.style.marginTop = '15px'; // Jarak antar akun jika lebih dari 1
+                        div.innerHTML = `<p><strong>Nomor Rekening :</strong> ${acc.norek} (${acc.nama_bank || ''})</p>
+                                         <p><strong>Nama Pemilik Akun :</strong> ${acc.nama_pemilik}</p>`;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = '<p>Informasi pembayaran tidak tersedia.</p>';
+                }
+            } catch (err) {
+                console.error('Gagal memuat info pembayaran:', err);
+            }
+        }
+
         // Mengatur tanggal default ke hari ini saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function () {
             flatpickr("#tanggal_transaksi", {
@@ -310,40 +342,56 @@
                 altInput: true,           // Aktifkan tampilan alternatif
                 altFormat: "j F Y",       // Format tampilan: 15 April 2026
             });
+            loadPaymentInfo(); // Panggil fungsi load info pembayaran
         });
 
-        // Mengisi ID Tiket secara otomatis berdasarkan nama
-        document.getElementById('nama').addEventListener('blur', function () {
-            const namaInput = this.value;
+        // Mengisi ID Tiket secara otomatis berdasarkan nama dan urutan data
+        document.getElementById('nama').addEventListener('blur', async function () {
+            const namaInput = this.value.trim();
             const idTiketInput = document.getElementById('id_tiket');
+            
+            // Hentikan jika nama kosong
+            if (!namaInput) {
+                idTiketInput.value = '';
+                return;
+            }
 
-            // Ambil hingga 4 karakter pertama dari nama, hanya huruf, ubah ke uppercase
-            const nameLetters = namaInput.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+            // Tampilkan status loading
+            idTiketInput.placeholder = 'Menghasilkan ID...';
+            idTiketInput.value = '';
 
-            if (nameLetters.length > 0)
-            {
-                let numberSequence = '';
-                for (let i = 0; i < nameLetters.length; i++)
-                {
-                    // Konversi huruf ke posisi alfabet (A=1, B=2, ...)
-                    // Contoh: DERI -> D=4, E=5, R=18, I=9 -> 45189
-                    numberSequence += nameLetters.charCodeAt(i) - 64;
+            try {
+                // 1. Konversi nama ke angka
+                const nameInNumbers = namaInput
+                    .toUpperCase()
+                    .replace(/[^A-Z]/g, '') // Hanya ambil huruf
+                    .split('')
+                    .map(char => char.charCodeAt(0) - 64) // A=1, B=2, ...
+                    .join('');
+
+                // 2. Ambil jumlah data saat ini dari tabel tiketonline
+                const { count, error } = await supabaseClient
+                    .from('tiketonline')
+                    .select('*', { count: 'exact', head: true });
+
+                if (error) {
+                    throw new Error('Gagal mengambil urutan tiket: ' + error.message);
                 }
 
-                // Gabungkan menjadi format ID: ID-[angka]-[urutan]
-                const finalId = `ID-${numberSequence}-001`;
+                // 3. Tentukan nomor urut berikutnya
+                const nextSequence = (count || 0) + 1;
+
+                // 4. Gabungkan menjadi ID akhir
+                const finalId = `ID-${nameInNumbers}-${nextSequence}`;
                 idTiketInput.value = finalId;
-            } else
-            {
-                // Kosongkan ID jika nama dihapus atau tidak valid
-                idTiketInput.value = '';
+                idTiketInput.placeholder = 'ID akan terisi otomatis';
+
+            } catch (err) {
+                console.error('Gagal membuat ID Tiket:', err);
+                alert('Gagal membuat ID Tiket otomatis. Silakan coba lagi.');
+                idTiketInput.placeholder = 'Gagal membuat ID';
             }
         });
-
-        // Inisialisasi Supabase Client
-        const supabaseUrl = 'https://gnwosoaguhvqfunvzqqh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdud29zb2FndWh2cWZ1bnZ6cXFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDc5NzAsImV4cCI6MjA4ODY4Mzk3MH0.G_HocHF6DjW7mtYTGkEwynhtkVjkmP1Wo5MAdczAmWI';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         // Menangani tombol Konfirmasi untuk simpan ke Supabase
         document.querySelector('form').addEventListener('submit', async function (e) {
