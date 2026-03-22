@@ -487,6 +487,19 @@
         .modal-footer .btn-send:hover {
             transform: translateY(-2px);
         }
+
+        .modal-footer .btn-checkin {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .modal-footer .btn-checkin:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
+        .modal-footer .btn-checkin:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7; }
     </style>
 </head>
 <body id="body-pd">
@@ -627,6 +640,7 @@
             <div id="reader"></div>
             <div id="scan-result"></div>
              <div class="modal-footer">
+                <button type="button" class="btn-checkin" id="btn-checkin-scan" disabled>Check-in</button>
                 <button type="button" class="btn-cancel" id="btn-cancel-scan">Tutup</button>
             </div>
         </div>
@@ -976,6 +990,8 @@
 
         // --- LOGIC SCAN TIKET (Html5Qrcode) ---
         let html5QrCode;
+        let currentScannedTicketId = null;
+        const btnCheckIn = document.getElementById('btn-checkin-scan');
 
         async function startScanner() {
             const modalScan = document.getElementById('modal-scan-tiket');
@@ -983,6 +999,10 @@
             
             // Reset hasil scan sebelumnya
             document.getElementById('scan-result').classList.remove('show');
+            
+            // Reset tombol Check-in ke default (Off)
+            btnCheckIn.disabled = true;
+            currentScannedTicketId = null;
 
             // Tunggu sebentar agar modal tampil sebelum inisialisasi kamera
             await new Promise(r => setTimeout(r, 300));
@@ -1013,39 +1033,126 @@
             document.getElementById('scan-result').classList.remove('show');
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
+        async function onScanSuccess(decodedText, decodedResult) {
             // Saat QR Code terdeteksi
             html5QrCode.pause(); // Pause agar tidak scan berulang cepat
             
             const resultContainer = document.getElementById('scan-result');
             
+            // Reset status tombol & ID sebelum validasi
+            btnCheckIn.disabled = true;
+            currentScannedTicketId = null;
+            
             try {
-                // Coba parsing JSON dari QR Code
-                const data = JSON.parse(decodedText);
-                let htmlContent = '<h4>Tiket Terdeteksi</h4>';
-                
-                // Format tampilan data secara rapi
-                if (data["ID Tiket"]) htmlContent += `<p><span class="label">ID Tiket:</span> ${data["ID Tiket"]}</p>`;
-                if (data["Nama"]) htmlContent += `<p><span class="label">Nama:</span> ${data["Nama"]}</p>`;
-                if (data["Email"]) htmlContent += `<p><span class="label">Email:</span> ${data["Email"]}</p>`;
-                
-                // Tambahkan data lain jika ada
-                Object.keys(data).forEach(key => {
-                    if (!["ID Tiket", "Nama", "Email"].includes(key)) {
-                        htmlContent += `<p><span class="label">${key}:</span> ${data[key]}</p>`;
-                    }
-                });
+                let ticketId;
+                try {
+                    // Coba parsing JSON dari QR Code (Format Baru)
+                    const data = JSON.parse(decodedText);
+                    ticketId = data["ID Tiket"];
+                } catch (e) {
+                    // Fallback jika QR berisi text ID biasa
+                    ticketId = decodedText;
+                }
 
-                resultContainer.innerHTML = htmlContent;
-            } catch (e) {
-                // Jika bukan format JSON (Text biasa)
-                resultContainer.innerHTML = `<h4>Data Scan</h4><p>${decodedText}</p>`;
+                if (!ticketId) throw new Error("QR Code tidak mengandung ID Tiket yang valid.");
+
+                // Tampilkan status Loading
+                resultContainer.innerHTML = '<h4>Memverifikasi Tiket...</h4><p>Sedang mengecek data di database...</p>';
+                resultContainer.classList.add('show');
+
+                // 1. VALIDASI: Cek keberadaan data di tabel 'tiketvalid'
+                const { data: ticket, error } = await supabaseClient
+                    .from('tiketvalid')
+                    .select('*')
+                    .eq('id_tiket', ticketId)
+                    .single();
+
+                if (error || !ticket) {
+                    // JIKA DATA TIDAK ADA / ERROR
+                    resultContainer.innerHTML = `
+                        <h4 style="color: var(--danger);">Tiket Tidak Valid / Tidak Ditemukan</h4>
+                        <p>ID Tiket: <b>${ticketId}</b></p>
+                        <p style="font-size: 0.9rem; color: #ccc;">Tiket ini tidak ditemukan di database tiket valid. Kemungkinan sudah Check-in atau tiket palsu.</p>
+                    `;
+                    // Tombol tetap Disabled (Off)
+                } else {
+                    // JIKA DATA ADA (VALID)
+                    currentScannedTicketId = ticket.id_tiket;
+                    
+                    let htmlContent = '<h4 style="color: #2ecc71;">Tiket Valid & Terverifikasi</h4>';
+                    htmlContent += `<p><span class="label">ID Tiket:</span> ${ticket.id_tiket}</p>`;
+                    htmlContent += `<p><span class="label">Nama:</span> ${ticket.nama_lengkap}</p>`;
+                    htmlContent += `<p><span class="label">Email:</span> ${ticket.email}</p>`;
+                    htmlContent += `<p><span class="label">Status:</span> <span style="color: #2ecc71; font-weight: bold;">BELUM CHECK-IN</span></p>`;
+                    
+                    resultContainer.innerHTML = htmlContent;
+                    
+                    // 2. AKTIFKAN TOMBOL: Tombol Check-in jadi ON
+                    btnCheckIn.disabled = false;
+                }
+
+            } catch (err) {
+                resultContainer.innerHTML = `<h4 style="color: var(--danger);">Error Scan</h4><p>${err.message}</p>`;
             }
 
             resultContainer.classList.add('show');
         }
 
+        // --- LOGIC PROSES CHECK-IN ---
+        async function processCheckIn() {
+            if (!currentScannedTicketId) return;
+
+            btnCheckIn.textContent = 'Memproses...';
+            btnCheckIn.disabled = true;
+
+            try {
+                // 1. Cek apakah tiket ada di tiketvalid
+                const { data: ticket, error: fetchError } = await supabaseClient
+                    .from('tiketvalid')
+                    .select('*')
+                    .eq('id_tiket', currentScannedTicketId)
+                    .single();
+
+                if (fetchError || !ticket) {
+                    throw new Error('Tiket tidak ditemukan di database (Valid) atau sudah Check-in sebelumnya.');
+                }
+
+                // 2. Pindahkan ke tiketchekin
+                const { error: insertError } = await supabaseClient
+                    .from('tiketchekin')
+                    .insert([{
+                        id_tiket: ticket.id_tiket,
+                        nama_lengkap: ticket.nama_lengkap,
+                        alamat: ticket.alamat,
+                        nomor_wa: ticket.nomor_wa,
+                        email: ticket.email,
+                        bukti_bayar: ticket.bukti_bayar,
+                        tanggal_transaksi: ticket.tanggal_transaksi
+                    }]);
+                
+                if (insertError) throw insertError;
+
+                // 3. Hapus dari tiketvalid
+                const { error: deleteError } = await supabaseClient
+                    .from('tiketvalid')
+                    .delete()
+                    .eq('id_tiket', currentScannedTicketId);
+
+                if (deleteError) throw deleteError;
+
+                alert('Check-in Berhasil! Pengunjung dipersilakan masuk.');
+                stopScanner();
+                loadTickets(); // Refresh tabel
+
+            } catch (err) {
+                alert('Gagal Check-in: ' + err.message);
+                btnCheckIn.textContent = 'Check-in';
+                btnCheckIn.disabled = false;
+            }
+        }
+
         document.querySelector('.btn-scan').addEventListener('click', startScanner);
+        btnCheckIn.addEventListener('click', processCheckIn);
         document.getElementById('btn-close-scan').addEventListener('click', stopScanner);
         document.getElementById('btn-cancel-scan').addEventListener('click', stopScanner);
     </script>
