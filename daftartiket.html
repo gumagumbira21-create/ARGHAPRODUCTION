@@ -806,6 +806,7 @@
         const btnCloseDetail = document.getElementById('btn-close-detail');
         const btnCancelDetail = document.getElementById('btn-cancel-detail');
         const btnSendTicket = document.getElementById('btn-send-detail');
+        const btnRejectDetail = document.getElementById('btn-reject-detail');
 
         function showTicketDetails(ticketId) {
             const ticket = allTickets.find(t => t.id_tiket === ticketId);
@@ -970,9 +971,45 @@
             }
         }
 
+        // --- LOGIC REJECT TICKET ---
+        async function rejectTicket() {
+            const ticketId = document.getElementById('detail-id-tiket').textContent;
+            
+            // Konfirmasi sebelum menghapus
+            if (!confirm('Apakah Anda yakin ingin menolak tiket ini? Data akan dihapus permanen.')) return;
+
+            const btn = document.getElementById('btn-reject-detail');
+            const originalText = btn.textContent;
+            btn.textContent = 'Memproses...';
+            btn.disabled = true;
+
+            try {
+                // Hapus data dari tabel tiketonline di Supabase
+                const { error } = await supabaseClient
+                    .from('tiketonline')
+                    .delete()
+                    .eq('id_tiket', ticketId);
+
+                if (error) throw error;
+
+                alert("Maaf, Bukti Pembayaran yang anda kirim tidak benar");
+                
+                closeDetailModal();
+                loadTickets(); // Refresh tabel otomatis
+
+            } catch (err) {
+                console.error("Gagal menolak tiket:", err);
+                alert("Gagal menghapus data: " + err.message);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
         btnCloseDetail.addEventListener('click', closeDetailModal);
         btnCancelDetail.addEventListener('click', closeDetailModal);
         btnSendTicket.addEventListener('click', generateTicketPDF);
+        btnRejectDetail.addEventListener('click', rejectTicket);
         modalDetail.addEventListener('click', (e) => { if (e.target === modalDetail) closeDetailModal(); });
     </script>
 </body>
