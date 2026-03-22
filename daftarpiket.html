@@ -310,19 +310,33 @@
         async function loadPaymentInfo() {
             const container = document.getElementById('payment-info-container');
             try {
-                const { data, error } = await supabaseClient
+                // 1. Ambil data Akun Pembayaran
+                const { data: akunData, error: akunError } = await supabaseClient
                     .from('akunpembayaran')
                     .select('*');
 
-                if (error) throw error;
+                if (akunError) throw akunError;
 
-                if (data && data.length > 0) {
+                // 2. Ambil Harga Tiket dari tabel pengaturan
+                const { data: settingData } = await supabaseClient
+                    .from('pengaturan')
+                    .select('hargatiket')
+                    .limit(1)
+                    .single();
+                
+                let hargaDisplay = 'Belum diatur';
+                if (settingData && settingData.hargatiket) {
+                    hargaDisplay = 'Rp ' + parseInt(settingData.hargatiket).toLocaleString('id-ID');
+                }
+
+                if (akunData && akunData.length > 0) {
                     container.innerHTML = ''; // Hapus teks loading
-                    data.forEach((acc, index) => {
+                    akunData.forEach((acc, index) => {
                         const div = document.createElement('div');
                         if (index > 0) div.style.marginTop = '15px'; // Jarak antar akun jika lebih dari 1
                         div.innerHTML = `<p><strong>Nomor Rekening :</strong> ${acc.norek} (${acc.nama_bank || ''})</p>
-                                         <p><strong>Nama Pemilik Akun :</strong> ${acc.nama_pemilik}</p>`;
+                                         <p><strong>Nama Pemilik Akun :</strong> ${acc.nama_pemilik}</p>
+                                         <p style="margin-top: 5px; color: #d63031; font-weight: bold;"><strong>Jumlah Bayar :</strong> ${hargaDisplay}</p>`;
                         container.appendChild(div);
                     });
                 } else {
