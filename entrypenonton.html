@@ -318,6 +318,19 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            /* Tambahan Responsif untuk Modal di HP */
+            .modal-content {
+                width: 95%; /* Lebar hampir penuh di HP */
+                padding: 20px; /* Padding lebih kecil */
+            }
+            .modal-footer {
+                flex-wrap: wrap; /* Agar tombol turun ke bawah jika sempit */
+                justify-content: center;
+            }
+            .modal-footer button {
+                width: 100%; /* Tombol full width di HP agar mudah ditekan */
+                margin-bottom: 8px;
+            }
         }
 
         /* --- TABLE TOOLS STYLES --- */
@@ -406,7 +419,7 @@
             max-width: 600px; /* Lebar disesuaikan untuk detail */
             border: 1px solid #333;
             animation: fadeInContent 0.3s ease-out;
-            max-height: 80vh; /* Tinggi maksimal agar pas di layar HP */
+            max-height: 90vh; /* Batasi tinggi modal maks 90% dari tinggi layar */
             overflow-y: auto; /* Scrollbar vertikal agar tombol tidak terpotong */
         }
 
