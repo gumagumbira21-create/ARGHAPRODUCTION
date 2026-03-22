@@ -637,6 +637,7 @@
                 <h3>Scan QR Code Tiket</h3>
                 <span class="close-modal-btn" id="btn-close-scan">&times;</span>
             </div>
+            <div id="scan-clock" style="text-align: center; margin-bottom: 15px; font-size: 1rem; color: var(--text-light); background: #252525; padding: 10px; border-radius: 5px; border: 1px solid #444;"></div>
             <div id="reader"></div>
             <div id="scan-result"></div>
              <div class="modal-footer">
@@ -992,6 +993,18 @@
         let html5QrCode;
         let currentScannedTicketId = null;
         const btnCheckIn = document.getElementById('btn-checkin-scan');
+        let scanClockInterval;
+
+        // Fungsi update jam berjalan
+        function updateScanClock() {
+            const clockEl = document.getElementById('scan-clock');
+            if (clockEl) {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                clockEl.innerHTML = `${dateStr} <br> <span style="color: var(--secondary); font-weight: bold; font-size: 1.2rem;">${timeStr}</span>`;
+            }
+        }
 
         async function startScanner() {
             const modalScan = document.getElementById('modal-scan-tiket');
@@ -1003,6 +1016,10 @@
             // Reset tombol Check-in ke default (Off)
             btnCheckIn.disabled = true;
             currentScannedTicketId = null;
+            
+            // Mulai jam berjalan
+            updateScanClock();
+            scanClockInterval = setInterval(updateScanClock, 1000);
 
             // Tunggu sebentar agar modal tampil sebelum inisialisasi kamera
             await new Promise(r => setTimeout(r, 300));
@@ -1025,6 +1042,9 @@
         async function stopScanner() {
             const modalScan = document.getElementById('modal-scan-tiket');
             modalScan.classList.remove('active');
+            
+            // Hentikan jam
+            if (scanClockInterval) clearInterval(scanClockInterval);
             
             if (html5QrCode && html5QrCode.isScanning) {
                 try { await html5QrCode.stop(); } 
@@ -1142,6 +1162,11 @@
                     throw new Error('Tiket tidak ditemukan di database (Valid) atau sudah Check-in sebelumnya.');
                 }
 
+                // Ambil waktu saat ini untuk data check-in
+                const now = new Date();
+                const tanggalScan = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+                const pukul = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':'); // Format: HH:MM
+
                 // 2. Pindahkan ke tiketchekin
                 const { error: insertError } = await supabaseClient
                     .from('tiketchekin')
@@ -1152,7 +1177,9 @@
                         nomor_wa: ticket.nomor_wa,
                         email: ticket.email,
                         bukti_bayar: ticket.bukti_bayar,
-                        tanggal_transaksi: ticket.tanggal_transaksi
+                        tanggal_transaksi: ticket.tanggal_transaksi,
+                        tanggal_scan: tanggalScan, // Data Baru
+                        pukul: pukul               // Data Baru
                     }]);
                 
                 if (insertError) throw insertError;
