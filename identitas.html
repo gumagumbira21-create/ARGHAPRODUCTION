@@ -425,6 +425,12 @@
                         </div>
                     </div>
 
+                    <!-- Harga Tiket (Full Width) -->
+                    <div class="form-group full-width">
+                        <label>Harga Tiket (Rp)</label>
+                        <input type="number" id="hargatiket" class="form-control" placeholder="Contoh: 150000">
+                    </div>
+
                     <!-- Alamat Kantor (Full Width) -->
                     <div class="form-group full-width">
                         <label>Alamat Kantor</label>
@@ -535,6 +541,7 @@
                 const email = document.getElementById('email').value;
                 const username_utama = document.getElementById('username_utama').value;
                 const password_utama = document.getElementById('password_utama').value;
+                const hargatiket = document.getElementById('hargatiket').value;
                 const alamat_kantor = document.getElementById('alamat_kantor').value;
                 const logoFile = document.getElementById('logo_input').files[0];
 
@@ -562,7 +569,7 @@
                 }
 
                 // Siapkan data untuk disimpan
-                const updateData = { id, nama_eo, owner, tlp, email, username_utama, password_utama, alamat_kantor };
+                const updateData = { id, nama_eo, owner, tlp, email, username_utama, password_utama, hargatiket, alamat_kantor };
                 if (logoUrl) {
                     updateData.logo = logoUrl; // Hanya update logo jika ada upload baru
                     
@@ -628,6 +635,7 @@
                     document.getElementById('email').value = row.email || '';
                     document.getElementById('username_utama').value = row.username_utama || '';
                     document.getElementById('password_utama').value = row.password_utama || '';
+                    document.getElementById('hargatiket').value = row.hargatiket || '';
                     document.getElementById('alamat_kantor').value = row.alamat_kantor || '';
 
                     // LOGIKA PAKSA TAMPIL GAMBAR
