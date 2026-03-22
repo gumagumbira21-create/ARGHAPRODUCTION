@@ -1067,16 +1067,8 @@
                     .eq('id_tiket', ticketId)
                     .single();
 
-                if (error || !ticket) {
-                    // JIKA DATA TIDAK ADA / ERROR
-                    resultContainer.innerHTML = `
-                        <h4 style="color: var(--danger);">Tiket Tidak Valid / Tidak Ditemukan</h4>
-                        <p>ID Tiket: <b>${ticketId}</b></p>
-                        <p style="font-size: 0.9rem; color: #ccc;">Tiket ini tidak ditemukan di database tiket valid. Kemungkinan sudah Check-in atau tiket palsu.</p>
-                    `;
-                    // Tombol tetap Disabled (Off)
-                } else {
-                    // JIKA DATA ADA (VALID)
+                if (ticket) {
+                    // LOGIKA 1: JIKA DATA ADA DI TIKET VALID (BELUM CHECK-IN)
                     currentScannedTicketId = ticket.id_tiket;
                     
                     let htmlContent = '<h4 style="color: #2ecc71;">Tiket Valid & Terverifikasi</h4>';
@@ -1089,6 +1081,37 @@
                     
                     // 2. AKTIFKAN TOMBOL: Tombol Check-in jadi ON
                     btnCheckIn.disabled = false;
+
+                } else {
+                    // LOGIKA 2: Cek di tabel tiketchekin (Apakah sudah digunakan?)
+                    const { data: ticketUsed } = await supabaseClient
+                        .from('tiketchekin')
+                        .select('*')
+                        .eq('id_tiket', ticketId)
+                        .single();
+
+                    if (ticketUsed) {
+                        // JIKA SUDAH PERNAH CHECK-IN
+                        resultContainer.innerHTML = `
+                            <h4 style="color: #e67e22;">Tiket Sudah Digunakan!</h4>
+                            <p>ID Tiket: <b>${ticketId}</b></p>
+                            <p>Nama: ${ticketUsed.nama_lengkap}</p>
+                            <div style="background: rgba(230, 126, 34, 0.1); padding: 15px; border-left: 5px solid #e67e22; margin-top: 15px; border-radius: 4px;">
+                                <p style="color: #e67e22; font-weight: bold; margin: 0; font-size: 1.1rem;"><i class='bx bx-error-circle'></i> PERINGATAN</p>
+                                <p style="margin: 10px 0 0; color: #ffca28;">Tiket telah di gunakan, Pengunjung telah berada di dalam Venue Acara.</p>
+                                <p style="font-size: 0.85rem; margin-top: 5px; color: #aaa;">Waktu Masuk: ${ticketUsed.created_at ? new Date(ticketUsed.created_at).toLocaleString('id-ID') : '-'}</p>
+                            </div>
+                        `;
+                        // Tombol Check-in Tetap OFF
+                    } else {
+                        // JIKA TIDAK ADA DI KEDUA TABEL (INVALID)
+                        resultContainer.innerHTML = `
+                            <h4 style="color: var(--danger);">Tiket Tidak Valid / Tidak Ditemukan</h4>
+                            <p>ID Tiket: <b>${ticketId}</b></p>
+                            <p style="font-size: 0.9rem; color: #ccc;">Tiket ini tidak terdaftar di sistem kami.</p>
+                        `;
+                        // Tombol Check-in Tetap OFF
+                    }
                 }
 
             } catch (err) {
