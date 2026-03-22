@@ -1061,11 +1061,11 @@
                 resultContainer.classList.add('show');
 
                 // 1. VALIDASI: Cek keberadaan data di tabel 'tiketvalid'
-                const { data: ticket, error } = await supabaseClient
+                const { data: ticket } = await supabaseClient
                     .from('tiketvalid')
                     .select('*')
                     .eq('id_tiket', ticketId)
-                    .single();
+                    .maybeSingle();
 
                 if (ticket) {
                     // LOGIKA 1: JIKA DATA ADA DI TIKET VALID (BELUM CHECK-IN)
@@ -1084,11 +1084,13 @@
 
                 } else {
                     // LOGIKA 2: Cek di tabel tiketchekin (Apakah sudah digunakan?)
-                    const { data: ticketUsed } = await supabaseClient
+                    const { data: usedTickets } = await supabaseClient
                         .from('tiketchekin')
                         .select('*')
                         .eq('id_tiket', ticketId)
-                        .single();
+                        .limit(1);
+
+                    const ticketUsed = (usedTickets && usedTickets.length > 0) ? usedTickets[0] : null;
 
                     if (ticketUsed) {
                         // JIKA SUDAH PERNAH CHECK-IN
